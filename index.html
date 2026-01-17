@@ -53,7 +53,7 @@ input, select { width: 100%; padding: 14px; border-radius: 12px; border: 2px sol
 input:focus { border-color: var(--primary); outline: none; background: #fff; }
 
 .btn-primary { width: 100%; padding: 18px; border-radius: 18px; border: none; font-size: 18px; font-weight: 800; cursor: pointer; background: var(--primary); color: white; box-shadow: 0 10px 20px rgba(37, 117, 252, 0.2); display: flex; align-items: center; justify-content: center; gap: 10px; text-transform: uppercase; }
-.btn-primary:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+.btn-primary:disabled { background: #ccc !important; cursor: not-allowed !important; box-shadow: none !important; opacity: 0.7; }
 .btn-outline { width: 100%; padding: 16px; border-radius: 18px; border: none; background: #f1f2f6; color: #636e72; margin-top: 15px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
 
 #file-list { margin-top: 10px; font-size: 14px; color: #555; background: #fff; padding: 10px; border-radius: 10px; border: 1px dashed #ccc; }
@@ -70,7 +70,7 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
     <p>SD NEGERI 006 SUNGAI PINANG</p>
     <div class="notice" style="text-align:left; font-size: 15px;">
       <i class="fas fa-info-circle"></i> <strong>Informasi:</strong><br>
-      Pastikan seluruh data diisi dengan benar sesuai dokumen resmi (Akta lahir, Kartu Keluarga dan Foto siswa).
+      Pastikan seluruh data diisi dengan benar sesuai dokumen resmi (Akta lahir, Kartu Keluarga dan Foto siswa)
     </div>
     <button class="btn-primary" onclick="show('step1')">MULAI PENGISIAN <i class="fas fa-arrow-right"></i></button>
   </div>
@@ -92,8 +92,19 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
           <option>Perempuan</option>
         </select>
       </div>
-      <div class="form-group"><label>NISN (10 Digit)</label><input type="number" name="nisn" oninput="limit(this, 10)"></div>
-      <div class="form-group"><label>NIK Siswa (16 Digit)</label><input type="number" name="nik" oninput="limit(this, 16)" required></div>
+      
+	<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+		<div style="flex: 1;">
+		<label>NISN (10 Digit)</label>
+		<input type="number" name="nisn" oninput="limit(this, 10)">
+		</div>
+		
+		<div style="flex: 1;">
+		<label>NIK Siswa (16 Digit)</label>
+		<input type="number" name="nik" oninput="limit(this, 16)" required>
+	  </div>
+	</div>
+	  
       <div class="form-group"><label>Nomor KK (16 Digit)</label><input type="number" name="no_kk" oninput="limit(this, 16)" required></div>
       
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -108,7 +119,9 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
       </div>
 
       <div class="form-group"><label>Nomor Akta Lahir</label><input type="text" name="no_akta" required></div>
-      <div class="form-group">
+	  
+      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div style="flex: 1;">
         <label>Berkebutuhan Khusus Siswa</label>
         <select name="abk_siswa" required>
           <option value="">-- Pilih --</option>
@@ -131,7 +144,7 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
           <option>autis</option>
         </select>
       </div>
-      <div class="form-group">
+      <div style="flex: 1;">
         <label>Agama</label>
         <select name="agama" required>
           <option value="">-- Pilih --</option>
@@ -145,15 +158,35 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
           <option>lainnya</option>
         </select>
       </div>
+	</div>
+	
       <div class="form-group"><label>Alamat</label><input type="text" name="alamat" required></div>
-      <div style="display: flex; gap: 10px;">
-        <div class="form-group" style="flex:1;"><label>RT</label><input type="number" name="rt" oninput="limit(this, 4)" required></div>
-        <div class="form-group" style="flex:1;"><label>RW</label><input type="number" name="rw" oninput="limit(this, 4)" required></div>
+      
+	  <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div style="flex: 1;">
+      <label>RT</label>
+      <input type="number" name="rt" oninput="limit(this, 4)" required>
+        </div>
+      <div style="flex: 1;">
+      <label>RW</label>
+      <input type="number" name="rw" oninput="limit(this, 4)" required>
       </div>
-      <div class="form-group"><label>Kelurahan</label><input type="text" name="kelurahan" required></div>
-      <div class="form-group"><label>Kecamatan</label><input type="text" name="kecamatan" required></div>
-      <div class="form-group"><label>Kode POS</label><input type="number" name="kodepos" oninput="limit(this, 10)" required></div>
-      <div class="form-group">
+    </div>
+	  
+	  <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div style="flex: 1;">
+	  <label>Kelurahan</label><input type="text" name="kelurahan" required>
+	  </div>
+      <div style="flex: 1;">
+	  <label>Kecamatan</label><input type="text" name="kecamatan" required>
+	  </div>
+    </div>
+	
+	  
+	  <div class="form-group"><label>Kode POS</label><input type="number" name="kodepos" oninput="limit(this, 10)" required></div>
+      
+	  <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div style="flex: 1;">
         <label>Tinggal Bersama</label>
         <select name="tinggal" required>
           <option value="">-- Pilih --</option>
@@ -166,7 +199,7 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
           <option>lainnya</option>
         </select>
       </div>
-      <div class="form-group">
+      <div style="flex: 1;">
         <label>Mode Transportasi</label>
         <select name="transpor" required>
           <option value="">-- Pilih --</option>
@@ -180,6 +213,8 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
           <option>lainnya</option>
         </select>
       </div>
+	 </div>
+	  
       <button type="button" class="btn-primary" onclick="show('step2')">DATA ORANG TUA / WALI <i class="fas fa-arrow-right"></i></button>
     </div>
 
@@ -191,9 +226,20 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
       
       <h3><i class="fas fa-user-tie"></i> DATA AYAH</h3>
       <div class="form-group"><label>Nama Ayah</label><input type="text" name="nama_ayah" required></div>
-      <div class="form-group"><label>NIK Ayah</label><input type="number" name="nik_ayah" oninput="limit(this, 16)" required></div>
-      <div class="form-group"><label>Tahun Lahir Ayah</label><input type="number" name="thn_ayah" oninput="limit(this, 4)" required></div>
-      <div class="form-group">
+      
+	  <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div style="flex: 70%;">
+      <label>NIK Ayah</label>
+      <input type="number" name="nik_ayah" oninput="limit(this, 16)" required>
+      </div>
+      <div style="flex: 30%;">
+      <label>Tahun Lahir Ayah</label>
+      <input type="number" name="thn_ayah" oninput="limit(this, 4)" required>
+      </div>
+    </div>
+      
+	  <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div style="flex: 1;">
         <label>Pendidikan Ayah</label>
         <select name="pdk_ayah" required>
           <option value="">-- Pilih --</option>
@@ -209,7 +255,7 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
           <option>lainnya</option>
         </select>
       </div>
-      <div class="form-group">
+      <div style="flex: 1;">
         <label>Pekerjaan Ayah</label>
         <select name="krj_ayah" required>
           <option value="">-- Pilih --</option>
@@ -232,8 +278,13 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
           <option>lainnya</option>
         </select>
       </div>
-      <div class="form-group"><label>Penghasilan Ayah</label><input type="text" class="rupiah" placeholder="Rp 0" required></div>
-      <div class="form-group">
+	</div>
+      
+	  <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div style="flex: 1;">
+	  <label>Penghasilan Ayah</label><input type="text" class="rupiah" placeholder="Rp 0" required>
+	  </div>
+        <div style="flex: 1;">
         <label>Berkebutuhan Khusus Ayah</label>
         <select name="abk_ayah" required>
           <option>tidak</option>
@@ -255,12 +306,21 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
           <option>autis</option>
         </select>
       </div>
+	 </div>
 
       <h3><i class="fas fa-user-nurse"></i> DATA IBU</h3>
       <div class="form-group"><label>Nama Ibu</label><input type="text" name="nama_ibu" required></div>
-      <div class="form-group"><label>NIK Ibu</label><input type="number" name="nik_ibu" oninput="limit(this, 16)" required></div>
-      <div class="form-group"><label>Tahun Lahir Ibu</label><input type="number" name="thn_ibu" oninput="limit(this, 4)" required></div>
-      <div class="form-group">
+      
+	  <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div style="flex: 70%;">
+	  <label>NIK Ibu</label><input type="number" name="nik_ibu" oninput="limit(this, 16)" required>
+	  </div>
+      <div style="flex: 30%;">
+	  <label>Tahun Lahir Ibu</label><input type="number" name="thn_ibu" oninput="limit(this, 4)" required></div>
+	</div>
+	  
+      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div style="flex: 1;">
         <label>Pendidikan Ibu</label>
         <select name="pdk_ibu" required>
           <option value="">-- Pilih --</option>
@@ -276,7 +336,7 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
           <option>lainnya</option>
         </select>
       </div>
-      <div class="form-group">
+      <div style="flex: 1;">
         <label>Pekerjaan Ibu</label>
         <select name="krj_ibu" required>
           <option value="">-- Pilih --</option>
@@ -299,8 +359,12 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
           <option>lainnya</option>
         </select>
       </div>
-      <div class="form-group"><label>Penghasilan Ibu</label><input type="text" class="rupiah" placeholder="Rp 0" required></div>
-      <div class="form-group">
+	</div>
+	
+      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div style="flex: 1;">
+	  <label>Penghasilan Ibu</label><input type="text" class="rupiah" placeholder="Rp 0" required></div>
+      <div style="flex: 1;">
         <label>Berkebutuhan Khusus Ibu</label>
         <select name="abk_ibu" required>
           <option>tidak</option>
@@ -322,12 +386,20 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
           <option>autis</option>
         </select>
       </div>
+	</div>
 
-      <h3><i class="fas fa-user-shield"></i> DATA WALI</h3>
+      <h3><i class="fas fa-user-shield"></i> DATA WALI (*jika ada)</h3>
       <div class="form-group"><label>Nama Wali</label><input type="text" name="nama_wali"></div>
-      <div class="form-group"><label>NIK Wali</label><input type="number" name="nik_wali" oninput="limit(this, 16)"></div>
-      <div class="form-group"><label>Tahun Lahir Wali</label><input type="number" name="thn_wali" oninput="limit(this, 4)"></div>
-      <div class="form-group">
+      
+	  <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div style="flex: 70%;">
+      <label>NIK Wali</label><input type="number" name="nik_wali" oninput="limit(this, 16)"></div>
+      <div style="flex: 30%;">
+	  <label>Tahun Lahir Wali</label><input type="number" name="thn_wali" oninput="limit(this, 4)"></div>
+      </div>
+	  
+	  <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <div style="flex: 1;">
         <label>Pendidikan Wali</label>
         <select name="pdk_wali">
           <option value="">-- Pilih --</option>
@@ -343,7 +415,7 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
           <option>lainnya</option>
         </select>
       </div>
-      <div class="form-group">
+      <div style="flex: 1;">
         <label>Pekerjaan Wali</label>
         <select name="krj_wali">
           <option value="">-- Pilih --</option>
@@ -366,6 +438,8 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
           <option>lainnya</option>
         </select>
       </div>
+	</div>
+	
       <div class="form-group"><label>Penghasilan Wali</label><input type="text" class="rupiah" placeholder="Rp 0"></div>
 
       <button type="button" class="btn-primary" onclick="show('step3')">DATA PENDUKUNG <i class="fas fa-arrow-right"></i></button>
@@ -413,7 +487,9 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
       </div>
 
       <h3><i class="fas fa-phone-alt"></i> KONTAK</h3>
-      <div class="form-group"><label>Nomor HP / WA Aktif</label><input type="number" name="hp" required></div>
+      <div class="form-group">
+	  <label>Nomor HP / WA Aktif</label>
+	  <input type="number" name="hp" placeholder="08xxxxxxxxxx" required></div>
 
       <h3><i class="fas fa-trophy"></i> DATA PRESTASI</h3>
       <div class="form-group">
@@ -423,17 +499,17 @@ input:focus { border-color: var(--primary); outline: none; background: #fff; }
       <div style="display: flex; gap: 10px;">
         <div class="form-group" style="flex: 30%;">
           <label>Juara</label>
-          <input type="number" name="juara" placeholder="1">
+          <input type="number" name="juara" placeholder="1/2/3 dst">
         </div>
         <div class="form-group" style="flex: 70%;">
           <label>Tingkat Prestasi</label>
-          <input type="text" name="tingkat_prestasi" placeholder="Sekolah/Kota/Nasional">
+          <input type="text" name="tingkat_prestasi" placeholder="Sekolah/Kota/Nasional/Negara">
         </div>
       </div>
 
       <h3><i class="fas fa-file-upload"></i> UPLOAD BERKAS (MAKS 5)</h3>
       <div class="notice" style="background:#fff3cd; border-left:5px solid #ffc107; padding:10px; font-size:13px; margin-bottom:10px;">
-        Upload Akta, KK, dan Foto Siswa.
+        Upload Akta, KK, dan Foto Siswa (Wajib minimal 1 file).
       </div>
       <input type="file" id="fileInput" multiple style="display:none;">
       <button type="button" class="btn-outline" onclick="document.getElementById('fileInput').click()" style="background:#e3f2fd; color:#1976d2;"><i class="fas fa-plus"></i> Tambah File</button>
@@ -495,6 +571,7 @@ document.querySelectorAll('.rupiah').forEach(inp => {
       rupiah += separator + ribuan.join('.');
     }
     this.value = rupiah ? 'Rp ' + rupiah : '';
+    validateForm();
   });
 });
 
@@ -530,26 +607,34 @@ function validateForm() {
   let filled = true;
   
   reqs.forEach(r => { 
-    // Menggunakan .trim() agar lebih akurat mengecek kolom yang benar-benar kosong
-    if (r.type === 'checkbox' ? !r.checked : !r.value.trim()) {
-      filled = false; 
+    if (r.type === 'checkbox') {
+      if (!r.checked) filled = false; 
+    } else {
+      // Tombol tetap nonaktif jika ada kolom required yang kosong (selain angka 0)
+      if (r.value.trim() === "") {
+        filled = false;
+      }
     }
   });
 
-  // Cek apakah sudah upload file (karena file juga wajib)
-  if (selectedFiles.length === 0) filled = false;
+  // Tombol tetap nonaktif jika belum ada file yang diunggah
+  if (selectedFiles.length === 0) {
+    filled = false;
+  }
 
   document.getElementById('btnKirim').disabled = !filled;
 }
 
+// Pantau setiap inputan
 form.addEventListener('input', validateForm);
+
+// Jalankan validasi saat halaman pertama kali dibuka
+document.addEventListener('DOMContentLoaded', validateForm);
 
 form.onsubmit = function(e) {
   e.preventDefault();
   const btn = document.getElementById('btnKirim');
   const originalContent = btn.innerHTML;
-  
-  // Ambil nama siswa untuk ditampilkan di halaman sukses
   const namaSiswa = document.getElementsByName('nama')[0].value;
   
   btn.disabled = true;
@@ -581,11 +666,8 @@ form.onsubmit = function(e) {
       body: JSON.stringify(payload)
     })
     .then(() => {
-      // TAMPILKAN HALAMAN SUKSES (Tanpa Alert)
       document.getElementById('success-name').innerText = namaSiswa;
       show('step-success'); 
-      
-      // Reset form di belakang layar
       form.reset();
       selectedFiles = [];
       renderFileList();
@@ -601,6 +683,3 @@ form.onsubmit = function(e) {
 </script>
 </body>
 </html>
-
-
-
