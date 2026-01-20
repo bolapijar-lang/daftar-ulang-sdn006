@@ -12,20 +12,19 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
         }
         
-    /* Pengaturan Background */
-   .bg {
-    height: 100%; 
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-attachment: fixed;
-    background-image: url("gambar02.png"); 
-    
-   }
+        /* Pengaturan Background */
+        .bg {
+            height: 100%; 
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            background-image: url("gambar02.png"); 
+        }
 
         /* Overlay Kaca Film */
         .overlay {
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.2); /* Sedikit lebih gelap agar teks lebih terbaca */
             min-height: 100%;
             display: flex;
             flex-direction: column;
@@ -40,23 +39,23 @@
         /* Logo dan Judul */
         .logo { width: 150px; margin-bottom: 20px; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5)); }
         
-    h1 { 
-        margin: 0; 
-        font-size: 3em;        /* Ukuran huruf di PC (misal: 3em untuk lebih besar) */
-        font-weight: bold; 
-        color: white;            /* UBAH WARNA HURUF DI SINI */
-        text-shadow: 5px 5px 0px rgba(0,0,0,1); /* Bayangan huruf */
-    }
+        h1 { 
+            margin: 0; 
+            font-size: 3em; 
+            font-weight: bold; 
+            color: white; 
+            text-shadow: 5px 5px 0px rgba(0,0,0,1);
+        }
 
         .motto {
            font-style: italic; 
            font-weight: bold; 
-           font-size: 1.2em;        /* TAMBAHKAN INI jika ingin mengatur ukuran motto */
-           color: #0000;          /* UBAH WARNA MOTTO DI SINI */
+           font-size: 1.2em; 
+           color: white; /* Diubah ke white agar terlihat, sebelumnya #0000 (transparan) */
            margin-bottom: 40px; 
-           max-width: 1500px;
+           max-width: 1000px;
            line-height: 1.6;
-           text-shadow: 2px 2px 0px #000000;
+           text-shadow: 2px 2px 4px #000000;
         }
 
         /* Kapsul Menu Utama */
@@ -66,10 +65,10 @@
             border-radius: 30px;
             display: flex;
             gap: 40px;
-            flex-wrap: wrap; /* Supaya menu turun ke bawah di HP */
+            flex-wrap: wrap;
             justify-content: center;
             backdrop-filter: blur(1px);
-            border: 1px solid rgba(255,255,255,0.5);
+            border: 1px solid rgba(255,255,255,0.3);
             max-width: 95%;
         }
 
@@ -84,21 +83,43 @@
         }
 
         .menu-item:hover { transform: translateY(-10px); }
-        .icon { font-size: 45px; margin-bottom: 10px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5)); }
+        
+        /* CSS UNTUK IKON (Emoji atau Gambar) */
+        .icon { 
+            font-size: 45px; 
+            margin-bottom: 10px; 
+            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5)); 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 60px;
+        }
+
+        /* Jika menggunakan gambar di dalam .icon */
+        .icon img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+
         .label { font-size: 0.85em; font-weight: 600; text-transform: uppercase; }
 
+        /* FOOTER / COPYRIGHT */
+        .footer {
+            margin-top: 50px;
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
         /* --- PENGATURAN KHUSUS HP --- */
-        @media (max-width: 600px)
-		{ 
-		h1 { 
-        font-size: 2em;    /* Ukuran Judul khusus di HP */
-        color: white;       /* Jika ingin warna judul di HP berbeda */
-        }
-        .motto { 
-        font-size: 0.9em;    /* Ukuran Motto khusus di HP */
-        color: #0000; 
-        }
-        /* ... kode lainnya ... */
+        @media (max-width: 600px) { 
+            h1 { font-size: 1.8em; }
+            .motto { font-size: 0.9em; color: white; }
+            .menu-wrapper { gap: 20px; padding: 20px; }
+            .menu-item { width: 80px; }
+            .icon { font-size: 35px; }
+            .label { font-size: 0.7em; }
         }
     </style>
 </head>
@@ -108,35 +129,44 @@
     <div class="overlay">
         <img src="Logo_Kota_Samarinda.png" class="logo" alt="Logo">
         
-        <h1>PORTAL RESMI <br>
-		SDN 006 SUNGAI PINANG</h1>
+        <h1>PORTAL RESMI <br> SDN 006 SUNGAI PINANG</h1>
         
         <p class="motto">Membentuk Peserta Didik Yang Unggul Secara Dini, Beriman Dan Bertaqwa, Berbudi Luhur, Dan Cinta Lingkungan</p>
 
         <div class="menu-wrapper">
-            <a href="https://sites.google.com/admin.sd.belajar.id/sdn006sungaipinang/beranda" target="_blank" class="menu-item">
-                <div class="icon">🌐</div>
-                <div class="label">Web Sekolah</div>
-            </a>
             
-            <a href="pendataan_US/" target="_blank" class="menu-item">
-                <div class="icon">📝</div>
-                <div class="label">Pendataan US</div>
+            <a href="https://spmbsamarinda.id/#/welcome" target="_blank" class="menu-item">
+                <div class="icon">🏫</div>
+                <div class="label">SPBM Samarinda</div>
             </a>
-
+                
             <a href="daftar_ulang_SPMB/" target="_blank" class="menu-item">
                 <div class="icon">📜</div>
                 <div class="label">Daftar Ulang</div>
             </a>
             
+			<a href="https://sites.google.com/admin.sd.belajar.id/sdn006sungaipinang/beranda" target="_blank" class="menu-item">
+                <div class="icon">🌐</div>
+                <div class="label">Web Sekolah</div>
+            </a>
+			
+			<a href="pendataan_US/" target="_blank" class="menu-item">
+                <div class="icon">📝</div>
+                <div class="label">Pendataan US</div>
+            </a>
+			
             <a href="surat_mutasi/" target="_blank" class="menu-item">
                 <div class="icon">📄</div>
                 <div class="label">Surat Mutasi</div>
             </a>
         </div>
+
+        <div class="footer">
+            &copy; SD Negeri 006 Sungai Pinang 2026
+        </div>
+
     </div>
 </div>
+
 </body>
 </html>
-
-
