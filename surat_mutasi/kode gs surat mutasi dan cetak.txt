@@ -1,4 +1,4 @@
-var SS_ID = "1X4PN2IyBQR-HLl7kQyZ8OHg4WvnkqUQYVyZEU5KOirE"; 
+var SS_ID = "1TvpmJgB58UL4Z1O46-0J7XfMHLeXtqVwTvmLWRlgDwQ"; 
 var FOLDER_ID = "1FtP9q4A-CmKspG05i35y-SDvKmvCrm-lsuU49ir4czdE3-VVL3sptS5RfC48p6dCU49qP2Sz";
 var TEMPLATE_ID = "1UKd8DYjV07OaNq8-lqF0rSozO8WxMXRUk0xmdUf5zVU"; 
 
@@ -24,11 +24,19 @@ function doPost(e) {
     var sheetMutasi = ss.getSheetByName("mutasi");
     var folder = DriveApp.getFolderById(FOLDER_ID);
 
-    // --- 1. OLAH TANGGAL UNTUK LABEL NAMA FILE (dd-mm-yy) ---
-    var tglSplit = obj.tanggalMutasi.split("-"); // Dari yyyy-mm-dd
-    var tglLabel = tglSplit[2] + "-" + tglSplit[1] + "-" + tglSplit[0].substring(2); // Hasil: 10-01-26
+    // --- 1. PROSES WAKTU UNTUK FOOTNOTE ---
+    var sekarang = new Date();
+    // Kita buat format dd/MM/yyyy HH:mm langsung di sini
+    var teksTimestamp = Utilities.formatDate(sekarang, "GMT+8", "dd/MM/yyyy HH:mm");
     
-    // --- 2. UPLOAD BUKTI DENGAN NAMA: BUKTI_NAMA_TANGGAL ---
+    var tglSplit = obj.tanggalMutasi.split("-"); 
+    var tglLabel = tglSplit[2] + "-" + tglSplit[1] + "-" + tglSplit[0].substring(2); 
+    
+    // --- 2. SOLUSI AGAR ANGKA NOL (0) TIDAK HILANG ---
+    // Tambahkan kutip satu (') agar Spreadsheet menganggapnya teks murni
+    var nisnFix = "'" + obj.nisn;
+    var npsnFix = "'" + obj.npsn;
+
     var fileUrl = "-";
     if (fileData) {
       var namaFileBukti = "BUKTI_" + obj.nama.toUpperCase() + "_" + tglLabel;
@@ -36,32 +44,32 @@ function doPost(e) {
       fileUrl = folder.createFile(blobBukti).getUrl();
     }
 
-    // --- 3. INPUT DATA KE SHEET MUTASI ---
+    // --- 3. INPUT DATA KE SHEET ---
     sheetMutasi.appendRow([
-      new Date(), obj.kelas, obj.nama, obj.jk, obj.nisn, obj.tempatLahir, obj.tanggalLahir, 
-      obj.sekolahTujuan, obj.npsn, obj.alamat, obj.kelurahan, obj.kecamatan, obj.kota, obj.provinsi,
+      sekarang, obj.kelas, obj.nama, obj.jk, nisnFix, obj.tempatLahir, obj.tanggalLahir, 
+      obj.sekolahTujuan, npsnFix, obj.alamat, obj.kelurahan, obj.kecamatan, obj.kota, obj.provinsi,
       "Mutasi", obj.tanggalMutasi, fileUrl 
     ]);
 
-    // Paksa hitung rumus di Sheet agar Kolom R terisi
     SpreadsheetApp.flush(); 
-    Utilities.sleep(1000);
+    Utilities.sleep(1200); 
     
     var lastRow = sheetMutasi.getLastRow();
-    var tanggalIndo = sheetMutasi.getRange(lastRow, 18).getDisplayValue(); // Ambil dari Kolom R
+    // Mengambil tanggal mutasi dari Kolom P (16) yang sudah diformat Indonesia di Sheet
+    var tanggalMutasiDariSheet = sheetMutasi.getRange(lastRow, 16).getDisplayValue();
 
-    // --- 4. BUAT DOC DENGAN NAMA: SURAT_MUTASI_NAMA_TANGGAL ---
+    // --- 4. OLAH DOKUMEN ---
     var namaDocBaru = "SURAT_MUTASI_" + obj.nama.toUpperCase() + "_" + tglLabel;
     var copyFile = DriveApp.getFileById(TEMPLATE_ID).makeCopy(namaDocBaru, folder);
     var docUrl = copyFile.getUrl();
     
-    // Simpan link Doc ke Kolom S (19)
-    sheetMutasi.getRange(lastRow, 19).setValue(docUrl);
+    // Link surat otomatis masuk ke Kolom R (18)
+    sheetMutasi.getRange(lastRow, 18).setValue(docUrl);
 
-    // Isi data ke dalam Document
     var doc = DocumentApp.openById(copyFile.getId());
     var body = doc.getBody();
 	
+    // Replace Data Utama
     body.replaceText("<<Nama>>", obj.nama);
     body.replaceText("<<NISN>>", obj.nisn);
     body.replaceText("<<jk>>", obj.jk);
@@ -70,20 +78,38 @@ function doPost(e) {
     body.replaceText("<<Kelas>>", obj.kelas);
     body.replaceText("<<SD Tujuan>>", obj.sekolahTujuan);
     body.replaceText("<<NPSN>>", obj.npsn);
+    body.replaceText("<<Alamat>>", obj.alamat);
     body.replaceText("<<Kelurahan>>", obj.kelurahan);
     body.replaceText("<<Kecamatan>>", obj.kecamatan);
     body.replaceText("<<Kota>>", obj.kota);
     body.replaceText("<<Provinsi>>", obj.provinsi);
     body.replaceText("<<mutasi>>", "Mutasi");
-    body.replaceText("<<tanggal mutasi>>", tanggalIndo);
     
-    doc.saveAndClose();
+    // Tanggal Tanda Tangan (mengambil dari kolom P)
+    body.replaceText("<<tanggal mutasi>>", tanggalMutasiDariSheet);
 
-    return ContentService.createTextOutput(JSON.stringify({"status": "Sukses", "nama": obj.nama})).setMimeType(ContentService.MimeType.JSON);
+    // FOOTNOTE (Sekarang diletakkan di Body paling bawah)
+    body.replaceText("<<timestamp>>", teksTimestamp);
+    	
+    doc.saveAndClose();
+	
+    // --- 5. GENERATE PDF ---
+    Utilities.sleep(1500); 
+    var pdfBlob = copyFile.getAs(MimeType.PDF);
+    var pdfBase64 = Utilities.base64Encode(pdfBlob.getBytes());
+    var namaFileFix = "SURAT_MUTASI_" + obj.nama.toUpperCase().replace(/\s+/g, '_') + ".pdf";
+
+    return ContentService.createTextOutput(JSON.stringify({
+      "status": "Sukses", 
+      "nama": obj.nama,
+      "pdfData": pdfBase64,
+      "fileName": namaFileFix
+    })).setMimeType(ContentService.MimeType.JSON);
     
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({"status": "Error", "message": err.toString()})).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({
+      "status": "Error", 
+      "message": err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 }
-
-function cekAksesNISN(n) { return; }
