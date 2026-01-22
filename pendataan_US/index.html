@@ -7,74 +7,33 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
 <style>
-:root {
-  --primary: #1a73e8;
-  --secondary: #5f6368;
-  --success: #2ecc71;
-  --bg: #CBCBCB;
-  --card-bg: #ffffff;
-}
-
-body {
-  font-family: 'Inter', sans-serif;
-  background-color: var(--bg);
-  margin: 0;
-  padding: 15px;
-  color: #3c4043;
-}
-
-.card {
-  max-width: 800px;
-  width: 100%;
-  background: var(--card-bg);
-  margin: 15px auto;
-  padding: 30px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-  box-sizing: border-box;
-  border: 1px solid #e0e0e0;
-}
-
+:root { --primary: #1a73e8; --secondary: #5f6368; --success: #2ecc71; --bg: #CBCBCB; --card-bg: #ffffff; }
+body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 15px; color: #3c4043; }
+.card { max-width: 800px; width: 100%; background: var(--card-bg); margin: 15px auto; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); box-sizing: border-box; border: 1px solid #e0e0e0; }
 .form-row { display: flex; gap: 15px; margin-bottom: 10px; }
 .form-group { flex: 1; }
-
-@media (max-width: 480px) {
-  .form-row { flex-direction: column; gap: 0; }
-}
-
+@media (max-width: 480px) { .form-row { flex-direction: column; gap: 0; } }
 .page { display: none; animation: fadeIn 0.4s ease-out; }
 .active { display: block }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
 h2 { font-size: 1.5rem; text-align: center; color: var(--primary); margin-bottom: 10px; font-weight: 800; }
 h3 { text-align: left; margin-top: 35px; color: #202124; border-left: 4px solid var(--primary); padding-left: 12px; font-size: 1.15rem; background: #f1f3f4; padding: 10px; border-radius: 0 8px 8px 0; }
-
 label { font-weight: 600; margin-top: 20px; display: block; font-size: 0.85rem; color: #5f6368; }
 label i { color: var(--primary); margin-right: 8px; width: 20px; text-align: center; }
-
-input, select {
-  width: 100%; padding: 12px 15px; margin-top: 8px; border-radius: 10px; border: 2px solid #edeff2; font-size: 15px; box-sizing: border-box; transition: all 0.3s ease;
-}
-
+input, select { width: 100%; padding: 12px 15px; margin-top: 8px; border-radius: 10px; border: 2px solid #edeff2; font-size: 15px; box-sizing: border-box; transition: all 0.3s ease; }
 input:focus, select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1); }
-
 button { border: none; padding: 16px 24px; border-radius: 12px; cursor: pointer; font-size: 1rem; font-weight: 700; width: 100%; transition: all 0.3s ease; }
 .btn-primary { background: var(--primary); color: #fff; }
 .btn-secondary { background: #e8eaed; color: #3c4043; }
 button:disabled { background: #dadce0; color: #9aa0a6; cursor: not-allowed; }
-
 .btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 30px; }
 @media (min-width: 600px) { .btn-group { flex-direction: row-reverse; } }
-
 #file-list { margin-top: 15px; background: #f8f9fa; border: 2px dashed #dadce0; border-radius: 12px; padding: 15px; }
 .file-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #fff; border: 1px solid #e0e0e0; margin-bottom: 8px; border-radius: 8px; font-size: 0.85rem; }
 .remove-btn { color: #d93025; font-weight: bold; cursor: pointer; }
-
-/* Perbaikan Checkbox agar di kiri */
 .notice { background: #e6f4ea; color: #137333; padding: 15px; border-radius: 12px; margin-top: 20px; font-size: 0.9rem; border: 1px solid #ceead6; text-align: left; }
 .notice label { margin-top: 0; display: flex; align-items: center; justify-content: flex-start; gap: 10px; color: #137333; }
 .notice input[type="checkbox"] { width: 18px; height: 18px; margin: 0; cursor: pointer; }
-
 .spinner { display: inline-block; animation: spin 1s linear infinite; font-size: 24px; }
 @keyframes spin { 100% { transform:rotate(360deg); } }
 </style>
@@ -111,12 +70,12 @@ button:disabled { background: #dadce0; color: #9aa0a6; cursor: not-allowed; }
   <div class="form-row">
     <div class="form-group">
       <label><i class="fas fa-id-card"></i> NISN</label>
-      <input id="nisn" type="number" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10)" placeholder="10 Digit" required>
+      <input id="nisn" type="text" inputmode="numeric" placeholder="Wajib 10 Digit" required>
     </div>
     <div class="form-group">
-    <label><i class="fas fa-fingerprint"></i> NIS</label>
-      <input id="nis" type="number" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10)" placeholder="Maks 10 Digit" required>
-	</div>
+      <label><i class="fas fa-fingerprint"></i> NIS</label>
+      <input id="nis" type="text" inputmode="numeric" placeholder="Maks 10 Digit" required>
+    </div>
   </div>
   
   <label><i class="fas fa-signature"></i> Nama Lengkap</label>
@@ -134,27 +93,22 @@ button:disabled { background: #dadce0; color: #9aa0a6; cursor: not-allowed; }
   </div>
 
   <div class="form-row">
-  <div class="form-group">
-    <label><i class="fas fa-venus-mars"></i> Jenis Kelamin</label>
-    <select id="jenis_kelamin" required>
-      <option value="">--Pilih--</option>
-      <option>Laki-laki</option>
-      <option>Perempuan</option>
-    </select>
+    <div class="form-group">
+      <label><i class="fas fa-venus-mars"></i> Jenis Kelamin</label>
+      <select id="jenis_kelamin" required>
+        <option value="">--Pilih--</option>
+        <option>Laki-laki</option>
+        <option>Perempuan</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label><i class="fas fa-hands-praying"></i> Agama</label>
+      <select id="agama" required>
+        <option value="">--Pilih--</option>
+        <option>A : ISLAM</option><option>B : KATOLIK</option><option>C : PROTESTAN</option><option>D : BUDHA</option><option>E : HINDU</option><option>F : LAINNYA</option>
+      </select>
+    </div>
   </div>
-  <div class="form-group">
-    <label><i class="fas fa-hands-praying"></i> Agama</label>
-    <select id="agama" required>
-      <option value="">--Pilih--</option>
-      <option>A : ISLAM</option>
-      <option>B : KATOLIK</option>
-      <option>C : PROTESTAN</option>
-      <option>D : BUDHA</option>
-      <option>E : HINDU</option>
-      <option>F : LAINNYA</option>
-    </select>
-  </div>
-</div>
 
   <label><i class="fas fa-home"></i> Alamat Lengkap</label>
   <input id="alamat" placeholder="Nama Jalan, RT/RW" required>
@@ -163,7 +117,7 @@ button:disabled { background: #dadce0; color: #9aa0a6; cursor: not-allowed; }
   <input id="kecamatan" required>
 
   <label><i class="fas fa-whatsapp"></i> Nomor HP / WhatsApp</label>
-  <input id="hp" type="number" placeholder="08xxxxxxxxxx" required>
+  <input id="hp" type="text" inputmode="numeric" placeholder="Maks 13 Digit (08...)" required>
 
   <h3><i class="fas fa-user-tie"></i> DATA AYAH</h3>
   <label><i class="fas fa-user"></i> Nama Ayah</label>
@@ -174,34 +128,14 @@ button:disabled { background: #dadce0; color: #9aa0a6; cursor: not-allowed; }
       <label><i class="fas fa-briefcase"></i> Pekerjaan Ayah</label>
       <select id="pekerjaan_ayah" required>
         <option value="">--Pilih--</option>
-        <option>A : PNS ( SELAIN C & D )</option>
-        <option>B : TNI/POLRI</option>
-        <option>C : GURU/DOSEN</option>
-        <option>D : DOKTER</option>
-        <option>E : POLITIKUS</option>
-        <option>F : PEGAWAI SWASTA</option>
-        <option>G : PEDAGANG WIRASWASTA</option>
-        <option>H : PETANI/PETERNAK</option>
-        <option>I : SENIMAN/LUKIS/ARTIS/SEJENISNYA</option>
-        <option>J : BURUH</option>
-        <option>K : DIRUMAH SAJA</option>
-        <option>L : LAINNYA</option>
+        <option>A : PNS</option><option>B : TNI/POLRI</option><option>C : GURU/DOSEN</option><option>D : DOKTER</option><option>E : POLITIKUS</option><option>F : PEGAWAI SWASTA</option><option>G : PEDAGANG WIRASWASTA</option><option>H : PETANI/PETERNAK</option><option>I : SENIMAN</option><option>J : BURUH</option><option>K : DIRUMAH SAJA</option><option>L : LAINNYA</option>
       </select>
     </div>
     <div class="form-group">
       <label><i class="fas fa-user-graduate"></i> Pendidikan Ayah</label>
       <select id="pendidikan_ayah" required>
         <option value="">--Pilih--</option>
-        <option>A : TIDAK TAMAT SD/MI/PAKET</option>
-        <option>B : SD/MI/PAKET A</option>
-        <option>C : SMP/MTs/PAKET B</option>
-        <option>D : SMA/MA/PAKET C</option>
-        <option>E : D1 & D2</option>
-        <option>F : D3 & D4</option>
-        <option>G : S1</option>
-        <option>H : S2</option>
-        <option>I : S3</option>
-        <option>J : LAINNYA</option>
+        <option>A : TIDAK TAMAT SD</option><option>B : SD/MI</option><option>C : SMP/MTs</option><option>D : SMA/MA</option><option>E : D1-D2</option><option>F : D3-D4</option><option>G : S1</option><option>H : S2</option><option>I : S3</option><option>J : LAINNYA</option>
       </select>
     </div>
   </div>
@@ -209,12 +143,7 @@ button:disabled { background: #dadce0; color: #9aa0a6; cursor: not-allowed; }
   <label><i class="fas fa-wallet"></i> Penghasilan Ayah</label>
   <select id="penghasilan_ayah" required>
     <option value="">--Pilih--</option>
-    <option>A : KURANG DARI Rp 500.000</option>
-    <option>B : Rp 500.000 s/d Rp 1.000.000</option>
-    <option>C : Rp 1.000.000 s/d Rp 3.000.000</option>
-    <option>D : Rp 3.000.000 s/d Rp 5.000.000</option>
-    <option>E : DIATAS Rp 5.000.000</option>
-    <option>F : Tidak berpenghasilan</option>
+    <option>A : < 500rb</option><option>B : 500rb - 1jt</option><option>C : 1jt - 3jt</option><option>D : 3jt - 5jt</option><option>E : > 5jt</option><option>F : Tidak berpenghasilan</option>
   </select>
 
   <h3><i class="fas fa-user-nurse"></i> DATA IBU</h3>
@@ -226,34 +155,14 @@ button:disabled { background: #dadce0; color: #9aa0a6; cursor: not-allowed; }
       <label><i class="fas fa-briefcase"></i> Pekerjaan Ibu</label>
       <select id="pekerjaan_ibu" required>
         <option value="">--Pilih--</option>
-        <option>A : PNS ( SELAIN C & D )</option>
-        <option>B : TNI/POLRI</option>
-        <option>C : GURU/DOSEN</option>
-        <option>D : DOKTER</option>
-        <option>E : POLITIKUS</option>
-        <option>F : PEGAWAI SWASTA</option>
-        <option>G : PEDAGANG WIRASWASTA</option>
-        <option>H : PETANI/PETERNAK</option>
-        <option>I : SENIMAN/LUKIS/ARTIS/SEJENISNYA</option>
-        <option>J : BURUH</option>
-        <option>K : DIRUMAH SAJA</option>
-        <option>L : LAINNYA</option>
+        <option>A : PNS</option><option>B : TNI/POLRI</option><option>C : GURU/DOSEN</option><option>D : DOKTER</option><option>E : POLITIKUS</option><option>F : PEGAWAI SWASTA</option><option>G : PEDAGANG WIRASWASTA</option><option>H : PETANI/PETERNAK</option><option>I : SENIMAN</option><option>J : BURUH</option><option>K : DIRUMAH SAJA</option><option>L : LAINNYA</option>
       </select>
     </div>
     <div class="form-group">
       <label><i class="fas fa-user-graduate"></i> Pendidikan Ibu</label>
       <select id="pendidikan_ibu" required>
         <option value="">--Pilih--</option>
-        <option>A : TIDAK TAMAT SD/MI/PAKET</option>
-        <option>B : SD/MI/PAKET A</option>
-        <option>C : SMP/MTs/PAKET B</option>
-        <option>D : SMA/MA/PAKET C</option>
-        <option>E : D1 & D2</option>
-        <option>F : D3 & D4</option>
-        <option>G : S1</option>
-        <option>H : S2</option>
-        <option>I : S3</option>
-        <option>J : LAINNYA</option>
+        <option>A : TIDAK TAMAT SD</option><option>B : SD/MI</option><option>C : SMP/MTs</option><option>D : SMA/MA</option><option>E : D1-D2</option><option>F : D3-D4</option><option>G : S1</option><option>H : S2</option><option>I : S3</option><option>J : LAINNYA</option>
       </select>
     </div>
   </div>
@@ -261,12 +170,7 @@ button:disabled { background: #dadce0; color: #9aa0a6; cursor: not-allowed; }
   <label><i class="fas fa-wallet"></i> Penghasilan Ibu</label>
   <select id="penghasilan_ibu" required>
     <option value="">--Pilih--</option>
-    <option>A : KURANG DARI Rp 500.000</option>
-    <option>B : Rp 500.000 s/d Rp 1.000.000</option>
-    <option>C : Rp 1.000.000 s/d Rp 3.000.000</option>
-    <option>D : Rp 3.000.000 s/d Rp 5.000.000</option>
-    <option>E : DIATAS Rp 5.000.000</option>
-    <option>F : Tidak berpenghasilan</option>
+    <option>A : < 500rb</option><option>B : 500rb - 1jt</option><option>C : 1jt - 3jt</option><option>D : 3jt - 5jt</option><option>E : > 5jt</option><option>F : Tidak berpenghasilan</option>
   </select>
 
   <h3><i class="fas fa-star"></i> DATA PENUNJANG</h3>
@@ -275,26 +179,14 @@ button:disabled { background: #dadce0; color: #9aa0a6; cursor: not-allowed; }
       <label><i class="fas fa-palette"></i> Hobi</label>
       <select id="hobi" required>
         <option value="">--Pilih--</option>
-        <option>A : OLAH RAGA</option>
-        <option>B : KESENIAN</option>
-        <option>C : MEMBACA</option>
-        <option>D : MENULIS</option>
-        <option>E : TRAVELING</option>
-        <option>F : LAINNYA</option>
+        <option>A : OLAH RAGA</option><option>B : KESENIAN</option><option>C : MEMBACA</option><option>D : MENULIS</option><option>E : TRAVELING</option><option>F : LAINNYA</option>
       </select>
     </div>
     <div class="form-group">
       <label><i class="fas fa-bullseye"></i> Cita-cita</label>
       <select id="cita" required>
         <option value="">--Pilih--</option>
-        <option>A : PNS</option>
-        <option>B : TNI/POLRI</option>
-        <option>C : GURU/DOSEN</option>
-        <option>D : DOKTER</option>
-        <option>E : POLITIKUS</option>
-        <option>F : WIRASWASTA</option>
-        <option>G : SENI/LUKIS/ARTIS/SEJENISNYA</option>
-        <option>H : LAINNYA</option>
+        <option>A : PNS</option><option>B : TNI/POLRI</option><option>C : GURU</option><option>D : DOKTER</option><option>E : POLITIKUS</option><option>F : WIRASWASTA</option><option>G : SENIMAN</option><option>H : LAINNYA</option>
       </select>
     </div>
   </div>
@@ -304,24 +196,14 @@ button:disabled { background: #dadce0; color: #9aa0a6; cursor: not-allowed; }
       <label><i class="fas fa-bus"></i> Transportasi</label>
       <select id="transport" required>
         <option value="">--Pilih--</option>
-        <option>A : JALAN KAKI</option>
-        <option>B : SEPEDA</option>
-        <option>C : MOTOR</option>
-        <option>D : MOBIL PRIBADI</option>
-        <option>E : ANTAR JEMPUT SEKOLAH</option>
-        <option>F : ANGKUTAN UMUM / TAXI</option>
-        <option>G : LAINNYA</option>
+        <option>A : JALAN KAKI</option><option>B : SEPEDA</option><option>C : MOTOR</option><option>D : MOBIL</option><option>E : ANTAR JEMPUT</option><option>F : ANGKUTAN UMUM</option><option>G : LAINNYA</option>
       </select>
     </div>
     <div class="form-group">
       <label><i class="fas fa-route"></i> Jarak Sekolah</label>
       <select id="jarak" required>
         <option value="">--Pilih--</option>
-        <option>A : 0 - 1 KM</option>
-        <option>B : 1 - 3 KM</option>
-        <option>C : 3 - 5 KM</option>
-        <option>D : 5 - 10 KM</option>
-        <option>E : LEBIH DARI 10 KM</option>
+        <option>A : 0-1 KM</option><option>B : 1-3 KM</option><option>C : 3-5 KM</option><option>D : 5-10 KM</option><option>E : > 10 KM</option>
       </select>
     </div>
   </div>
@@ -359,8 +241,43 @@ button:disabled { background: #dadce0; color: #9aa0a6; cursor: not-allowed; }
 
 <script>
 let storageFiles = [];
-// PASTIKAN SCRIPT_URL INI ADALAH URL TERBARU SETELAH ANDA DEPLOY ULANG KODE.GS
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw42ARdCy3azvfAbqQev6Wn2c0triIkABmlpDBvXr8OvTzhaSK_PuA6wcDoB_CXxCqQ/exec";
+// GANTI DENGAN URL DEPLOY TERBARU ANDA
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLraCE0CtyvnJBct6awsNrg2dGjA82Lg0EcXCKMY8QcOEDYgo3v5mDBZhpL3KQw811/exec";
+
+// ================== LOGIKA EYD ==================
+function formatEYD(str) {
+  return str.toLowerCase().replace(/(^|\s|\.)\S/g, (l) => l.toUpperCase());
+}
+
+// ================== SETUP LISTENERS ==================
+function setupInputListeners() {
+  // 1. Kapital Otomatis
+  document.querySelectorAll('#nama, #nama_ayah, #nama_ibu, #tempat_lahir, #alamat, #kecamatan').forEach(el => {
+    el.addEventListener('input', function() {
+      let start = this.selectionStart;
+      this.value = formatEYD(this.value);
+      this.setSelectionRange(start, start);
+    });
+  });
+
+  // 2. Proteksi Angka & Limit Digit
+  // NISN: Harus Digit, Maksimal 10
+  document.getElementById('nisn').addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, '').slice(0, 10);
+  });
+
+  // NIS: Harus Digit, Maksimal 10
+  document.getElementById('nis').addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, '').slice(0, 10);
+  });
+
+  // HP: Harus Digit, Maksimal 13
+  document.getElementById('hp').addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, '').slice(0, 13);
+  });
+}
+
+setupInputListeners();
 
 function show(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -383,29 +300,30 @@ function renderFiles() {
 
 function hapusFile(i) { storageFiles.splice(i, 1); renderFiles(); cekValidasi(); }
 
-// Tambahkan event listener untuk input dan change agar tombol menyala real-time
 document.getElementById('mainForm').addEventListener('input', cekValidasi);
 document.getElementById('mainForm').addEventListener('change', cekValidasi);
 
+// ================== LOGIKA VALIDASI TOMBOL ==================
 function cekValidasi() {
   const nisnVal = document.getElementById('nisn').value;
   const nisVal = document.getElementById('nis').value;
+  const hpVal = document.getElementById('hp').value;
   const isCekChecked = document.getElementById('cek').checked;
   const form = document.getElementById('mainForm');
   
-  // Validasi: NISN harus tepat 10 digit, NIS tidak boleh kosong
-  const isNisnValid = nisnVal.length === 10;
-  const isNisValid = nisVal.length > 0; 
+  // VALIDASI UTAMA: 
+  const isNisnValid = nisnVal.length === 10; // NISN HARUS TEPAT 10 DIGIT
+  const isNisValid = nisVal.length > 0;      // NIS BOLEH BERAPAPUN (MAKS 10 DIATUR DI INPUT) TAPI TIDAK KOSONG
+  const isHpValid = hpVal.length >= 10;      // HP MINIMAL 10 DIGIT
   const isFormValid = form.checkValidity();
   
-  // Tombol aktif jika: Form valid secara HTML, NISN 10 digit, NIS terisi, dan Checkbox dicentang
-  document.getElementById('btnKirim').disabled = !(isFormValid && isNisnValid && isNisValid && isCekChecked);
+  document.getElementById('btnKirim').disabled = !(isFormValid && isNisnValid && isNisValid && isHpValid && isCekChecked);
 }
 
 async function kirim() {
   const loader = document.getElementById('loader');
   const actionButtons = document.getElementById('action-buttons');
-  const namaSiswa = document.getElementById('nama').value.replace(/[^a-z0-9]/gi, '_');
+  const namaSiswa = document.getElementById('nama').value.trim().replace(/[^a-z0-9]/gi, '_');
 
   actionButtons.style.display = "none";
   loader.style.display = "block";
@@ -413,36 +331,30 @@ async function kirim() {
   try {
     const readAsBase64 = (file) => new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onload = () => resolve({ 
-        data: reader.result.split(',')[1], 
-        type: file.type, 
-        ext: file.name.split('.').pop() 
-      });
+      reader.onload = () => resolve({ data: reader.result.split(',')[1], type: file.type, ext: file.name.split('.').pop() });
       reader.readAsDataURL(file);
     });
 
     const fileData = await Promise.all(storageFiles.map(readAsBase64));
-    const namedFiles = fileData.map((file, index) => {
-      return { ...file, customName: `${namaSiswa}_${index + 1}` };
-    });
+    const namedFiles = fileData.map((file, index) => ({ ...file, customName: `${namaSiswa}_${index + 1}` }));
 
     const dataObj = {
       kelas: document.getElementById('kelas').value,
-      nisn: document.getElementById('nisn').value,
-      nis: document.getElementById('nis').value,
-      nama: document.getElementById('nama').value,
-      tempat_lahir: document.getElementById('tempat_lahir').value,
+      nisn: document.getElementById('nisn').value.trim(),
+      nis: document.getElementById('nis').value.trim(),
+      nama: document.getElementById('nama').value.trim(),
+      tempat_lahir: document.getElementById('tempat_lahir').value.trim(),
       tanggal_lahir: document.getElementById('tanggal_lahir').value,
       jenis_kelamin: document.getElementById('jenis_kelamin').value,
       agama: document.getElementById('agama').value,
-      alamat: document.getElementById('alamat').value,
-      kecamatan: document.getElementById('kecamatan').value,
-      hp: document.getElementById('hp').value,
-      nama_ayah: document.getElementById('nama_ayah').value,
+      alamat: document.getElementById('alamat').value.trim(),
+      kecamatan: document.getElementById('kecamatan').value.trim(),
+      hp: document.getElementById('hp').value.trim(),
+      nama_ayah: document.getElementById('nama_ayah').value.trim(),
       pekerjaan_ayah: document.getElementById('pekerjaan_ayah').value,
       pendidikan_ayah: document.getElementById('pendidikan_ayah').value,
       penghasilan_ayah: document.getElementById('penghasilan_ayah').value,
-      nama_ibu: document.getElementById('nama_ibu').value,
+      nama_ibu: document.getElementById('nama_ibu').value.trim(),
       pekerjaan_ibu: document.getElementById('pekerjaan_ibu').value,
       pendidikan_ibu: document.getElementById('pendidikan_ibu').value,
       penghasilan_ibu: document.getElementById('penghasilan_ibu').value,
@@ -453,16 +365,11 @@ async function kirim() {
       files: namedFiles 
     };
     
-    await fetch(SCRIPT_URL, { 
-      method: 'POST', 
-      mode: 'no-cors', // Penting untuk menghindari CORS error pada Apps Script
-      body: JSON.stringify(dataObj) 
-    });
-
+    await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dataObj) });
     show('notif');
   } catch (err) {
     console.error(err);
-    alert("Terjadi kesalahan saat mengirim. Silakan coba lagi.");
+    alert("Gagal mengirim. Periksa koneksi.");
     actionButtons.style.display = "flex";
     loader.style.display = "none";
   }
