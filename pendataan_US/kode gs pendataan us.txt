@@ -1,13 +1,15 @@
-// ================== KONFIG ==================
-const SPREADSHEET_ID = "1PWqmsM36FX7NryG6hLkjcUG3gwW-I_8TAhBzcRIC884";
+// ========== KONFIG ==========
+// SPREADSHEET_ID sekarang otomatis mengambil ID tempat skrip ini berada
+const SPREADSHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
+
+// Folder ID tetap manual karena Google Drive tidak tahu Anda ingin simpan di mana
 const FOLDER_ID = "1coXPqTP2aYz_C_DWH9NvP6g6zpeJox6k3FrFYhUe_9uV9ybPx2E5At__BtS0PhxGIT26M7_A";
-const SHEET_NAME = "Respon"; // Pastikan nama tab di Sheet Anda adalah 'Respon'
+const SHEET_NAME = "Respon"; 
 
 function doPost(e) {
-  // Gunakan LockService agar jika 100 orang klik 'Kirim' bersamaan, data masuk satu per satu (antre)
   const lock = LockService.getScriptLock();
   try {
-    lock.waitLock(30000); // Tunggu antrean maksimal 30 detik
+    lock.waitLock(30000); 
 
     const data = JSON.parse(e.postData.contents);
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -20,37 +22,38 @@ function doPost(e) {
     // 1. PROSES UPLOAD & RENAME FILE
     if (data.files && data.files.length > 0) {
       const folder = DriveApp.getFolderById(FOLDER_ID);
-
       data.files.forEach((f, i) => {
-        // Skrip Rename: NamaSiswa_Index.ext
-        const fileName = `${data.nama}_${i + 1}.${f.ext}`;
+        // Nama file dibersihkan dari karakter aneh
+        const safeName = data.nama.replace(/[^a-zA-Z0-9]/g, "_");
+        const fileName = `${safeName}_${i + 1}.${f.ext}`;
         const blob = Utilities.newBlob(Utilities.base64Decode(f.data), f.type, fileName);
         const createdFile = folder.createFile(blob);
-        fileUrls.push(createdFile.getUrl()); // Simpan URL untuk dimasukkan ke Sheet
+        fileUrls.push(createdFile.getUrl()); 
       });
     }
 
     const fileLinks = fileUrls.join(", ");
 
-    // 2. SIMPAN DATA KE SPREADSHEET (Dengan tanda ' agar angka aman)
+    // 2. SIMPAN DATA
+    // Menggunakan tanda "'" agar nol di depan dan digit panjang tidak rusak/menjadi format ilmiah
     sh.appendRow([
       new Date(),
       data.kelas,
-      "'" + data.nisn,      // Aman dari format ilmiah
-      "'" + data.nis,       // Aman dari nol hilang
-      data.nama,
-      data.tempat_lahir,
+      "'" + data.nisn.toString().trim(),      // WAJIB 10 Digit
+      "'" + data.nis.toString().trim(),       // MAKS 10 Digit
+      data.nama.trim(),
+      data.tempat_lahir.trim(),
       data.tanggal_lahir,
       data.jenis_kelamin,
       data.agama,
-      data.alamat,
-      data.kecamatan,
-      "'" + data.hp,        // Aman dari nol hilang
-      data.nama_ayah,
+      data.alamat.trim(),
+      data.kecamatan.trim(),
+      "'" + data.hp.toString().trim(),        // MAKS 13 Digit
+      data.nama_ayah.trim(),
       data.pekerjaan_ayah,
       data.pendidikan_ayah,
       data.penghasilan_ayah,
-      data.nama_ibu,
+      data.nama_ibu.trim(),
       data.pekerjaan_ibu,
       data.pendidikan_ibu,
       data.penghasilan_ibu,
@@ -58,7 +61,7 @@ function doPost(e) {
       data.cita,
       data.transport,
       data.jarak,
-      fileLinks            // Link file dicatat di kolom terakhir (PENTING)
+      fileLinks            
     ]);
 
     return ContentService.createTextOutput(JSON.stringify({ "status": "success" }))
@@ -68,6 +71,6 @@ function doPost(e) {
     return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": err.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
   } finally {
-    lock.releaseLock(); // Lepas kunci antrean
+    lock.releaseLock();
   }
 }

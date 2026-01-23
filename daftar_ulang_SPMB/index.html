@@ -688,7 +688,7 @@ form.onsubmit = function(e) {
 
   Promise.all(filePromises).then(files => {
     const payload = { ...dataObject, files: files };
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwHiMDkuo9-i1-MF-KT92nNLjvkoy7o35AMwW9EPhcNQsTu3PcMTWrUQ8BJlHuwYERs/exec'; // GANTI DENGAN URL DEPLOY ANDA
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzT3Ekb-htKV1LW27m--iOgMFVEqBoouVN0J9mIQVTUptBIcr4k5LEnpCoiqbDi40t0rg/exec'; // GANTI DENGAN URL DEPLOY ANDA
 
     fetch(scriptURL, {
       method: 'POST',
