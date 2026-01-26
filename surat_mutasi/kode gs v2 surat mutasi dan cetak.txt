@@ -1,0 +1,125 @@
+// 1. PENGATURAN ID (Otomatis & Terkunci)
+const SS_ID = SpreadsheetApp.getActiveSpreadsheet().getId(); 
+const FOLDER_ID = "1cTSOxoMRfKX5WTEIAg4lATKiVeaypk73lCV116RWLdQP2jAbN3vXM1fMvXr8ShWEyPkBrMcv";
+const TEMPLATE_ID = "1UKd8DYjV07OaNq8-lqF0rSozO8WxMXRUk0xmdUf5zVU"; 
+
+function doGet(e) {
+  var action = e.parameter.action;
+  if (action === "getSiswa") {
+    var sheet = SpreadsheetApp.openById(SS_ID).getSheetByName("database");
+    var data = sheet.getDataRange().getDisplayValues(); 
+    var dataSiswa = data.slice(1).map(function(r) {
+      // Index kolom: B=1 (Kelas), C=2 (Nama), D=3 (JK), E=4 (NISN), I=8 (Tempat), J=9 (Tgl Lahir)
+      return { kelas: r[1], nama: r[2], jk: r[3], nisn: r[4], tempatLahir: r[8], tanggalLahir: r[9] };
+    });
+    return ContentService.createTextOutput(JSON.stringify(dataSiswa)).setMimeType(ContentService.MimeType.JSON);
+  }
+  return HtmlService.createTemplateFromFile('Index').evaluate().setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var obj = data.obj;
+    var fileData = data.fileData;
+    var ss = SpreadsheetApp.openById(SS_ID);
+    var sheetDB = ss.getSheetByName("database");
+    var folder = DriveApp.getFolderById(FOLDER_ID);
+
+    // --- 1. CARI BARIS SISWA BERDASARKAN NISN (KOLOM E / INDEX 4) ---
+    var dataDB = sheetDB.getDataRange().getValues();
+    var rowIndex = -1;
+    for (var i = 1; i < dataDB.length; i++) {
+      if (String(dataDB[i][4]) === String(obj.nisn)) {
+        rowIndex = i + 1; // +1 karena index array mulai dari 0 dan ada header
+        break;
+      }
+    }
+
+    if (rowIndex === -1) throw new Error("NISN tidak ditemukan di database!");
+
+    // --- 2. PROSES WAKTU & LABEL ---
+    var sekarang = new Date();
+    var teksTimestamp = Utilities.formatDate(sekarang, "GMT+8", "dd/MM/yyyy HH:mm");
+    var tglSplit = obj.tanggalMutasi.split("-"); 
+    var tglLabel = tglSplit[2] + "-" + tglSplit[1] + "-" + tglSplit[0].substring(2); 
+
+    // --- 3. UPLOAD BUKTI ---
+    var fileUrl = "-";
+    if (fileData) {
+      var namaFileBukti = "BUKTI_" + obj.nama.toUpperCase() + "_" + tglLabel;
+      var blobBukti = Utilities.newBlob(Utilities.base64Decode(fileData.data), fileData.type, namaFileBukti);
+      fileUrl = folder.createFile(blobBukti).getUrl();
+    }
+
+    // --- 4. UPDATE DATA KE KOLOM BC s/d BM ---
+    // A=1, BC=55, BD=56, BE=57, BF=58, BG=59, BH=60, BI=61, BJ=62, BK=63, BL=64, BM=65
+    sheetDB.getRange(rowIndex, 1).setValue(sekarang); // Update Timestamp di Kolom A
+    sheetDB.getRange(rowIndex, 55).setValue(obj.sekolahTujuan); // BC
+    sheetDB.getRange(rowIndex, 56).setValue("'" + obj.npsn);    // BD
+    sheetDB.getRange(rowIndex, 57).setValue(obj.alamat);        // BE
+    sheetDB.getRange(rowIndex, 58).setValue(obj.kelurahan);     // BF
+    sheetDB.getRange(rowIndex, 59).setValue(obj.kecamatan);     // BG
+    sheetDB.getRange(rowIndex, 60).setValue(obj.kota);          // BH
+    sheetDB.getRange(rowIndex, 61).setValue(obj.provinsi);      // BI
+    sheetDB.getRange(rowIndex, 62).setValue("Mutasi");          // BJ
+    sheetDB.getRange(rowIndex, 63).setValue(obj.tanggalMutasi); // BK
+    sheetDB.getRange(rowIndex, 64).setValue(fileUrl);           // BL
+
+    SpreadsheetApp.flush();
+    Utilities.sleep(1000);
+
+    // Ambil tanggal mutasi yang sudah diformat Indonesia dari Kolom BK (63)
+    var tanggalIndoDariSheet = sheetDB.getRange(rowIndex, 63).getDisplayValue();
+
+    // --- 5. OLAH DOKUMEN ---
+    var namaDocBaru = "SURAT_MUTASI_" + obj.nama.toUpperCase() + "_" + tglLabel;
+    var copyFile = DriveApp.getFileById(TEMPLATE_ID).makeCopy(namaDocBaru, folder);
+    var docUrl = copyFile.getUrl();
+    
+    // Simpan link Doc ke Kolom BM (65)
+    sheetDB.getRange(rowIndex, 65).setValue(docUrl);
+
+    var doc = DocumentApp.openById(copyFile.getId());
+    var body = doc.getBody();
+    
+    // Replace placeholders
+    body.replaceText("<<Nama>>", obj.nama);
+    body.replaceText("<<NISN>>", obj.nisn);
+    body.replaceText("<<jk>>", obj.jk);
+    body.replaceText("<<Tempat>>", obj.tempatLahir);
+    body.replaceText("<<Tanggal Lahir>>", obj.tanggalLahir);
+    body.replaceText("<<Kelas>>", obj.kelas);
+    body.replaceText("<<SD Tujuan>>", obj.sekolahTujuan);
+    body.replaceText("<<NPSN>>", obj.npsn);
+    body.replaceText("<<Alamat>>", obj.alamat);
+    body.replaceText("<<Kelurahan>>", obj.kelurahan);
+    body.replaceText("<<Kecamatan>>", obj.kecamatan);
+    body.replaceText("<<Kota>>", obj.kota);
+    body.replaceText("<<Provinsi>>", obj.provinsi);
+    body.replaceText("<<mutasi>>", "Mutasi");
+    body.replaceText("<<tanggal mutasi>>", tanggalIndoDariSheet);
+    body.replaceText("<<timestamp>>", teksTimestamp);
+    
+    doc.saveAndClose();
+
+    // --- 6. GENERATE PDF ---
+    Utilities.sleep(1500);
+    var pdfBlob = copyFile.getAs(MimeType.PDF);
+    var pdfBase64 = Utilities.base64Encode(pdfBlob.getBytes());
+    var namaFileFix = "SURAT_MUTASI_" + obj.nama.toUpperCase().replace(/\s+/g, '_') + ".pdf";
+
+    return ContentService.createTextOutput(JSON.stringify({
+      "status": "Sukses", 
+      "nama": obj.nama,
+      "pdfData": pdfBase64,
+      "fileName": namaFileFix
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      "status": "Error", 
+      "message": err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
