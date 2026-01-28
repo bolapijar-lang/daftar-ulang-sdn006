@@ -6,253 +6,260 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Pendataan US - SDN 006 Sungai Pinang</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 
 <style>
-:root { --primary: #1a73e8; --secondary: #5f6368; --success: #2ecc71; --bg: #CBCBCB; --card-bg: #ffffff; }
-body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 15px; color: #3c4043; }
-.card { max-width: 800px; width: 100%; background: var(--card-bg); margin: 15px auto; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); box-sizing: border-box; border: 1px solid #e0e0e0; }
-.form-row { display: flex; gap: 15px; margin-bottom: 10px; }
-.form-group { flex: 1; }
-@media (max-width: 480px) { .form-row { flex-direction: column; gap: 0; } }
-.page { display: none; animation: fadeIn 0.4s ease-out; }
-.active { display: block }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-h2 { font-size: 1.5rem; text-align: center; color: var(--primary); margin-bottom: 10px; font-weight: 800; }
-h3 { text-align: left; margin-top: 35px; color: #202124; border-left: 4px solid var(--primary); padding-left: 12px; font-size: 1.15rem; background: #f1f3f4; padding: 10px; border-radius: 0 8px 8px 0; }
-label { font-weight: 600; margin-top: 20px; display: block; font-size: 0.85rem; color: #5f6368; }
-label i { color: var(--primary); margin-right: 8px; width: 20px; text-align: center; }
-input, select { width: 100%; padding: 12px 15px; margin-top: 8px; border-radius: 10px; border: 2px solid #edeff2; font-size: 15px; box-sizing: border-box; transition: all 0.3s ease; }
-input:focus, select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1); }
-button { border: none; padding: 16px 24px; border-radius: 12px; cursor: pointer; font-size: 1rem; font-weight: 700; width: 100%; transition: all 0.3s ease; }
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-secondary { background: #e8eaed; color: #3c4043; }
-button:disabled { background: #dadce0; color: #9aa0a6; cursor: not-allowed; }
-.btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 30px; }
-@media (min-width: 600px) { .btn-group { flex-direction: row-reverse; } }
-#file-list { margin-top: 15px; background: #f8f9fa; border: 2px dashed #dadce0; border-radius: 12px; padding: 15px; }
-.file-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #fff; border: 1px solid #e0e0e0; margin-bottom: 8px; border-radius: 8px; font-size: 0.85rem; }
-.remove-btn { color: #d93025; font-weight: bold; cursor: pointer; }
-.notice { background: #e6f4ea; color: #137333; padding: 15px; border-radius: 12px; margin-top: 20px; font-size: 0.9rem; border: 1px solid #ceead6; text-align: left; }
-.notice label { margin-top: 0; display: flex; align-items: center; justify-content: flex-start; gap: 10px; color: #137333; }
-.notice input[type="checkbox"] { width: 18px; height: 18px; margin: 0; cursor: pointer; }
-.spinner { display: inline-block; animation: spin 1s linear infinite; font-size: 24px; }
+:root { 
+  --primary: #2563eb; 
+  --primary-dark: #1e40af;
+  --secondary: #64748b; 
+  --success: #10b981; 
+  --bg: #f8fafc; 
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --accent: #dbeafe;
+  --grid-color: #e2e8f0; /* Warna garis kotak */
+}
+
+body { 
+  font-family: 'Plus Jakarta Sans', sans-serif; 
+  margin: 0; 
+  padding: 10px; 
+  color: var(--text-main);
+  line-height: 1.6;
+  min-height: 100vh;
+
+  /* LOGIKA BACKGROUND KOTAK (GRID) */
+  background-color: var(--bg);
+  background-image: 
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 30px 30px; /* Ukuran kotak 30px */
+}
+
+/* Container & Card */
+.container { max-width: 650px; margin: 40px auto; position: relative; z-index: 1; }
+
+.card { 
+  background: var(--card-bg); 
+  padding: 40px; 
+  border-radius: 28px; 
+  /* Bayangan lebih dalam agar kontras dengan background kotak */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); 
+  border: 1px solid rgba(255,255,255,0.7);
+}
+
+/* Animations */
+.page { display: none; }
+.active { display: block; animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header Styles */
+h2 { font-size: 1.5rem; text-align: center; color: var(--primary); margin-bottom: 5px; font-weight: 800; letter-spacing: -0.5px; }
+.sub-header { text-align: center; font-size: 1rem; color: var(--secondary); margin-bottom: 30px; font-weight: 600; }
+
+h3 { 
+  display: flex; align-items: center; gap: 10px; margin-top: 45px; 
+  color: var(--text-main); font-size: 1.15rem; font-weight: 800;
+  padding-bottom: 12px; border-bottom: 2px solid var(--accent);
+}
+
+/* Input Styles */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px; }
+@media (max-width: 480px) { .form-row { grid-template-columns: 1fr; gap: 0; } }
+
+label { font-weight: 600; margin-top: 20px; display: block; font-size: 0.85rem; color: var(--secondary); margin-left: 4px; }
+input, select { 
+  width: 100%; padding: 14px 18px; margin-top: 8px; border-radius: 14px; 
+  border: 1.5px solid #e2e8f0; font-size: 15px; font-family: inherit;
+  box-sizing: border-box; transition: all 0.2s ease; background: #ffffff;
+}
+
+input:focus, select:focus { 
+  border-color: var(--primary); outline: none; 
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+/* Buttons */
+button { 
+  border: none; padding: 18px 24px; border-radius: 16px; cursor: pointer; 
+  font-size: 1rem; font-weight: 700; width: 100%; transition: all 0.3s ease;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+
+.btn-primary { 
+  background: var(--primary); color: #fff; 
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.btn-secondary { background: #f1f5f9; color: var(--secondary); }
+button:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+
+/* File List & Notice */
+#file-list { margin-top: 15px; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 15px; }
+.file-item { 
+  display: flex; justify-content: space-between; align-items: center; 
+  padding: 12px; background: #fff; border: 1px solid #e2e8f0; 
+  margin-bottom: 8px; border-radius: 12px; font-size: 0.85rem;
+}
+.remove-btn { color: #ef4444; font-weight: 700; cursor: pointer; padding: 5px 10px; border-radius: 8px; background: #fef2f2; }
+
+.notice { 
+  background: #f0fdf4; color: #166534; padding: 20px; border-radius: 18px; 
+  margin-top: 30px; font-size: 0.9rem; border: 1px solid #dcfce7;
+}
+.notice label { margin: 0; display: flex; align-items: center; gap: 12px; color: #166534; cursor: pointer; }
+.notice input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--success); }
+
+.spinner { animation: spin 1s linear infinite; font-size: 24px; color: var(--primary); }
 @keyframes spin { 100% { transform:rotate(360deg); } }
+
+/* Logo Branding */
+.logo-box { 
+  width: 100px; height: 100px; background: #fff; margin: -90px auto 20px;
+  border-radius: 30px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #f1f5f9;
+}
+.logo-img { width: 70px; height: auto; }
 </style>
 </head>
 
 <body>
-<div class="card">
+<div class="container">
+  <div class="card">
 
-<div id="home" class="page active">
-  <div style="text-align:center; margin-bottom: 20px;">
-    <img src="Logo_Kota_Samarinda.png" alt="Logo" style="width: 120px; height: auto;">
+    <div id="home" class="page active">
+      <div class="logo-box">
+        <img src="Logo_Kota_Samarinda.png" alt="Logo" class="logo-img">
+      </div>
+      <h2>PENDATAAN UJIAN SEKOLAH</h2>
+      <div class="sub-header">SD NEGERI 006 SUNGAI PINANG</div>
+      
+      <div class="notice" style="background: var(--accent); color: var(--primary-dark); border-color: #bfdbfe;">
+        <strong><i class="fas fa-info-circle"></i> Instruksi:</strong>
+        <p style="margin: 8px 0 0 0; font-size: 0.85rem;">Isi data sesuai Akta Kelahiran/KK. Gunakan huruf kapital untuk nama.</p>
+      </div>
+
+      <div style="margin-top: 30px;">
+        <button class="btn-primary" onclick="show('data')">
+          Mulai Pengisian <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <form id="mainForm">
+      <div id="data" class="page">
+        <h3><i class="fas fa-user-graduate"></i> Identitas Siswa</h3>
+        
+        <label><i class="fas fa-school"></i> Pilih Kelas</label>
+        <select id="kelas" required>
+          <option value="">-- Pilih --</option>
+          <option>6-A</option>
+          <option>6-B</option>
+        </select>
+
+        <div class="form-row">
+          <div class="form-group"><label>NISN (10 Digit)</label><input id="nisn" type="text" inputmode="numeric" required></div>
+          <div class="form-group"><label>NIS (Maks 10 Digit)</label><input id="nis" type="text" inputmode="numeric" required></div>
+        </div>
+        
+        <label>Nama Lengkap (Sesuai Akta)</label>
+        <input id="nama" placeholder="Contoh: BUDI SANTOSO" required>
+
+        <div class="form-row">
+          <div class="form-group"><label>Tempat Lahir</label><input id="tempat_lahir" required></div>
+          <div class="form-group"><label>Tanggal Lahir</label><input id="tanggal_lahir" type="date" required></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Jenis Kelamin</label>
+            <select id="jenis_kelamin" required><option value="">-- Pilih --</option><option>Laki-laki</option><option>Perempuan</option></select>
+          </div>
+          <div class="form-group">
+            <label>Agama</label>
+            <select id="agama" required>
+              <option value="">-- Pilih --</option>
+              <option>A : ISLAM</option><option>B : KATOLIK</option><option>C : PROTESTAN</option><option>D : BUDHA</option><option>E : HINDU</option><option>F : LAINNYA</option>
+            </select>
+          </div>
+        </div>
+
+        <label>Alamat Lengkap</label>
+        <input id="alamat" required>
+        <label>Kecamatan</label>
+        <input id="kecamatan" required>
+        <label>Nomor WhatsApp</label>
+        <input id="hp" type="text" inputmode="numeric" placeholder="08..." required>
+
+        <h3><i class="fas fa-user-tie"></i> Data Orang Tua (Ayah)</h3>
+        <label>Nama Ayah Kandung</label><input id="nama_ayah" required>
+        <div class="form-row">
+          <div class="form-group"><label>Pekerjaan</label><select id="pekerjaan_ayah" required><option value="">-- Pilih --</option><option>A : PNS</option><option>B : TNI/POLRI</option><option>C : GURU/DOSEN</option><option>D : DOKTER</option><option>E : POLITIKUS</option><option>F : PEGAWAI SWASTA</option><option>G : PEDAGANG WIRASWASTA</option><option>H : PETANI/PETERNAK</option><option>I : SENIMAN</option><option>J : BURUH</option><option>K : DIRUMAH SAJA</option><option>L : LAINNYA</option></select></div>
+          <div class="form-group"><label>Pendidikan</label><select id="pendidikan_ayah" required><option value="">-- Pilih --</option><option>A : TIDAK TAMAT SD</option><option>B : SD/MI</option><option>C : SMP/MTs</option><option>D : SMA/MA</option><option>E : D1-D2</option><option>F : D3-D4</option><option>G : S1</option><option>H : S2</option><option>I : S3</option><option>J : LAINNYA</option></select></div>
+        </div>
+        <label>Penghasilan</label><select id="penghasilan_ayah" required><option value="">-- Pilih --</option><option>A : < 500rb</option><option>B : 500rb - 1jt</option><option>C : 1jt - 3jt</option><option>D : 3jt - 5jt</option><option>E : > 5jt</option><option>F : Tidak berpenghasilan</option></select>
+
+        <h3><i class="fas fa-user-nurse"></i> Data Orang Tua (Ibu)</h3>
+        <label>Nama Ibu Kandung</label><input id="nama_ibu" required>
+        <div class="form-row">
+          <div class="form-group"><label>Pekerjaan</label><select id="pekerjaan_ibu" required><option value="">-- Pilih --</option><option>A : PNS</option><option>B : TNI/POLRI</option><option>C : GURU/DOSEN</option><option>D : DOKTER</option><option>E : POLITIKUS</option><option>F : PEGAWAI SWASTA</option><option>G : PEDAGANG WIRASWASTA</option><option>H : PETANI/PETERNAK</option><option>I : SENIMAN</option><option>J : BURUH</option><option>K : DIRUMAH SAJA</option><option>L : LAINNYA</option></select></div>
+          <div class="form-group"><label>Pendidikan</label><select id="pendidikan_ibu" required><option value="">-- Pilih --</option><option>A : TIDAK TAMAT SD</option><option>B : SD/MI</option><option>C : SMP/MTs</option><option>D : SMA/MA</option><option>E : D1-D2</option><option>F : D3-D4</option><option>G : S1</option><option>H : S2</option><option>I : S3</option><option>J : LAINNYA</option></select></div>
+        </div>
+        <label>Penghasilan</label><select id="penghasilan_ibu" required><option value="">-- Pilih --</option><option>A : < 500rb</option><option>B : 500rb - 1jt</option><option>C : 1jt - 3jt</option><option>D : 3jt - 5jt</option><option>E : > 5jt</option><option>F : Tidak berpenghasilan</option></select>
+
+        <h3><i class="fas fa-star"></i> Lain-lain</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Hobi</label><select id="hobi" required><option value="">-- Pilih --</option><option>A : OLAH RAGA</option><option>B : KESENIAN</option><option>C : MEMBACA</option><option>D : MENULIS</option><option>E : TRAVELING</option><option>F : LAINNYA</option></select></div>
+          <div class="form-group"><label>Cita-cita</label><select id="cita" required><option value="">-- Pilih --</option><option>A : PNS</option><option>B : TNI/POLRI</option><option>C : GURU</option><option>D : DOKTER</option><option>E : POLITIKUS</option><option>F : WIRASWASTA</option><option>G : SENIMAN</option><option>H : LAINNYA</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Transportasi</label><select id="transport" required><option value="">-- Pilih --</option><option>A : JALAN KAKI</option><option>B : SEPEDA</option><option>C : MOTOR</option><option>D : MOBIL</option><option>E : ANTAR JEMPUT</option><option>F : ANGKUTAN UMUM</option><option>G : LAINNYA</option></select></div>
+          <div class="form-group"><label>Jarak</label><select id="jarak" required><option value="">-- Pilih --</option><option>A : 0-1 KM</option><option>B : 1-3 KM</option><option>C : 3-5 KM</option><option>D : 5-10 KM</option><option>E : > 10 KM</option></select></div>
+        </div>
+
+        <h3><i class="fas fa-file-upload"></i> Unggah Berkas</h3>
+        <label>Foto Akta/KK (Maks 5)</label>
+        <input id="files-input" type="file" multiple accept="image/*,.pdf">
+        <div id="file-list"><span>Belum ada file.</span></div>
+
+        <div class="notice">
+          <label><input type="checkbox" id="cek" required><span>Data yang saya isi benar dan asli.</span></label>
+        </div>
+
+        <div id="loader" style="display:none; text-align:center; margin:30px 0;">
+          <i class="fas fa-circle-notch spinner"></i><p style="margin-top:10px; font-weight:600;">Mengirim data...</p>
+        </div>
+
+        <div class="btn-group" id="action-buttons" style="display: flex; flex-direction: column; gap: 12px; margin-top: 30px;">
+          <button type="button" class="btn-primary" id="btnKirim" onclick="kirim()" disabled><i class="fas fa-paper-plane"></i> Kirim Data</button>
+          <button type="button" class="btn-secondary" onclick="show('home')">Kembali</button>
+        </div>
+      </div>
+    </form>
+
+    <div id="notif" class="page" style="text-align:center; padding: 40px 0;">
+      <i class="fas fa-check-circle fa-4x" style="color:var(--success); margin-bottom:20px;"></i>
+      <h2>Data Terkirim!</h2>
+      <p style="color:var(--secondary); margin-bottom:30px;">Terima kasih telah mengisi formulir.</p>
+      <button class="btn-primary" style="max-width:200px; margin:0 auto;" onclick="location.reload()">Selesai</button>
+    </div>
+
   </div>
-  <h2>FORMULIR PENDATAAN UJIAN SEKOLAH</h2>
-  <h3 style="text-align:center; border:none; background:none; font-size: 24px; color: #333; margin-top: 5px;">SD NEGERI 006 SUNGAI PINANG</h3>
-  <div class="notice">
-    <strong><i class="fas fa-info-circle"></i> Perhatian:</strong> Pastikan seluruh data diisi dengan benar sesuai dokumen resmi (Akta lahir/Kartu Keluarga).
-  </div>
-  <div class="btn-group">
-    <button class="btn-primary" onclick="show('data')">Mulai Pengisian</button>
-  </div>
-</div>
-
-<form id="mainForm">
-<div id="data" class="page">
-  <h3><i class="fas fa-user-graduate"></i> DATA SISWA</h3>
-  
-  <label><i class="fas fa-school"></i> Kelas</label>
-  <select id="kelas" required>
-    <option value="">--Pilih--</option>
-    <option>6-A</option>
-    <option>6-B</option>
-  </select>
-
-  <div class="form-row">
-    <div class="form-group">
-      <label><i class="fas fa-id-card"></i> NISN</label>
-      <input id="nisn" type="text" inputmode="numeric" placeholder="Wajib 10 Digit" required>
-    </div>
-    <div class="form-group">
-      <label><i class="fas fa-fingerprint"></i> NIS</label>
-      <input id="nis" type="text" inputmode="numeric" placeholder="Maks 10 Digit" required>
-    </div>
-  </div>
-  
-  <label><i class="fas fa-signature"></i> Nama Lengkap</label>
-  <input id="nama" placeholder="Sesuai Akta" required>
-
-  <div class="form-row">
-    <div class="form-group">
-      <label><i class="fas fa-map-marker-alt"></i> Tempat Lahir</label>
-      <input id="tempat_lahir" placeholder="Kota/Kab" required>
-    </div>
-    <div class="form-group">
-      <label><i class="fas fa-calendar-day"></i> Tanggal Lahir</label>
-      <input id="tanggal_lahir" type="date" required>
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group">
-      <label><i class="fas fa-venus-mars"></i> Jenis Kelamin</label>
-      <select id="jenis_kelamin" required>
-        <option value="">--Pilih--</option>
-        <option>Laki-laki</option>
-        <option>Perempuan</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label><i class="fas fa-hands-praying"></i> Agama</label>
-      <select id="agama" required>
-        <option value="">--Pilih--</option>
-        <option>A : ISLAM</option><option>B : KATOLIK</option><option>C : PROTESTAN</option><option>D : BUDHA</option><option>E : HINDU</option><option>F : LAINNYA</option>
-      </select>
-    </div>
-  </div>
-
-  <label><i class="fas fa-home"></i> Alamat Lengkap</label>
-  <input id="alamat" placeholder="Nama Jalan, RT/RW" required>
-
-  <label><i class="fas fa-map"></i> Kecamatan</label>
-  <input id="kecamatan" required>
-
-  <label><i class="fas fa-whatsapp"></i> Nomor HP / WhatsApp</label>
-  <input id="hp" type="text" inputmode="numeric" placeholder="Maks 13 Digit (08...)" required>
-
-  <h3><i class="fas fa-user-tie"></i> DATA AYAH</h3>
-  <label><i class="fas fa-user"></i> Nama Ayah</label>
-  <input id="nama_ayah" required>
-  
-  <div class="form-row">
-    <div class="form-group">
-      <label><i class="fas fa-briefcase"></i> Pekerjaan Ayah</label>
-      <select id="pekerjaan_ayah" required>
-        <option value="">--Pilih--</option>
-        <option>A : PNS</option><option>B : TNI/POLRI</option><option>C : GURU/DOSEN</option><option>D : DOKTER</option><option>E : POLITIKUS</option><option>F : PEGAWAI SWASTA</option><option>G : PEDAGANG WIRASWASTA</option><option>H : PETANI/PETERNAK</option><option>I : SENIMAN</option><option>J : BURUH</option><option>K : DIRUMAH SAJA</option><option>L : LAINNYA</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label><i class="fas fa-user-graduate"></i> Pendidikan Ayah</label>
-      <select id="pendidikan_ayah" required>
-        <option value="">--Pilih--</option>
-        <option>A : TIDAK TAMAT SD</option><option>B : SD/MI</option><option>C : SMP/MTs</option><option>D : SMA/MA</option><option>E : D1-D2</option><option>F : D3-D4</option><option>G : S1</option><option>H : S2</option><option>I : S3</option><option>J : LAINNYA</option>
-      </select>
-    </div>
-  </div>
-  
-  <label><i class="fas fa-wallet"></i> Penghasilan Ayah</label>
-  <select id="penghasilan_ayah" required>
-    <option value="">--Pilih--</option>
-    <option>A : < 500rb</option><option>B : 500rb - 1jt</option><option>C : 1jt - 3jt</option><option>D : 3jt - 5jt</option><option>E : > 5jt</option><option>F : Tidak berpenghasilan</option>
-  </select>
-
-  <h3><i class="fas fa-user-nurse"></i> DATA IBU</h3>
-  <label><i class="fas fa-user"></i> Nama Ibu</label>
-  <input id="nama_ibu" required>
-  
-  <div class="form-row">
-    <div class="form-group">
-      <label><i class="fas fa-briefcase"></i> Pekerjaan Ibu</label>
-      <select id="pekerjaan_ibu" required>
-        <option value="">--Pilih--</option>
-        <option>A : PNS</option><option>B : TNI/POLRI</option><option>C : GURU/DOSEN</option><option>D : DOKTER</option><option>E : POLITIKUS</option><option>F : PEGAWAI SWASTA</option><option>G : PEDAGANG WIRASWASTA</option><option>H : PETANI/PETERNAK</option><option>I : SENIMAN</option><option>J : BURUH</option><option>K : DIRUMAH SAJA</option><option>L : LAINNYA</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label><i class="fas fa-user-graduate"></i> Pendidikan Ibu</label>
-      <select id="pendidikan_ibu" required>
-        <option value="">--Pilih--</option>
-        <option>A : TIDAK TAMAT SD</option><option>B : SD/MI</option><option>C : SMP/MTs</option><option>D : SMA/MA</option><option>E : D1-D2</option><option>F : D3-D4</option><option>G : S1</option><option>H : S2</option><option>I : S3</option><option>J : LAINNYA</option>
-      </select>
-    </div>
-  </div>
-  
-  <label><i class="fas fa-wallet"></i> Penghasilan Ibu</label>
-  <select id="penghasilan_ibu" required>
-    <option value="">--Pilih--</option>
-    <option>A : < 500rb</option><option>B : 500rb - 1jt</option><option>C : 1jt - 3jt</option><option>D : 3jt - 5jt</option><option>E : > 5jt</option><option>F : Tidak berpenghasilan</option>
-  </select>
-
-  <h3><i class="fas fa-star"></i> DATA PENUNJANG</h3>
-  <div class="form-row">
-    <div class="form-group">
-      <label><i class="fas fa-palette"></i> Hobi</label>
-      <select id="hobi" required>
-        <option value="">--Pilih--</option>
-        <option>A : OLAH RAGA</option><option>B : KESENIAN</option><option>C : MEMBACA</option><option>D : MENULIS</option><option>E : TRAVELING</option><option>F : LAINNYA</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label><i class="fas fa-bullseye"></i> Cita-cita</label>
-      <select id="cita" required>
-        <option value="">--Pilih--</option>
-        <option>A : PNS</option><option>B : TNI/POLRI</option><option>C : GURU</option><option>D : DOKTER</option><option>E : POLITIKUS</option><option>F : WIRASWASTA</option><option>G : SENIMAN</option><option>H : LAINNYA</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group">
-      <label><i class="fas fa-bus"></i> Transportasi</label>
-      <select id="transport" required>
-        <option value="">--Pilih--</option>
-        <option>A : JALAN KAKI</option><option>B : SEPEDA</option><option>C : MOTOR</option><option>D : MOBIL</option><option>E : ANTAR JEMPUT</option><option>F : ANGKUTAN UMUM</option><option>G : LAINNYA</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label><i class="fas fa-route"></i> Jarak Sekolah</label>
-      <select id="jarak" required>
-        <option value="">--Pilih--</option>
-        <option>A : 0-1 KM</option><option>B : 1-3 KM</option><option>C : 3-5 KM</option><option>D : 5-10 KM</option><option>E : > 10 KM</option>
-      </select>
-    </div>
-  </div>
-
-  <h3><i class="fas fa-file-upload"></i> UPLOAD BERKAS</h3>
-  <label>Pilih File (Maksimal 5)</label>
-  <input id="files-input" type="file" multiple accept="image/*,.pdf">
-  <div id="file-list"><span>Belum ada file.</span></div>
-
-  <div class="notice">
-    <label>
-      <input type="checkbox" id="cek" required>
-      <span>Data yang saya isi sudah benar.</span>
-    </label>
-  </div>
-
-  <div id="loader" style="display:none; text-align:center; margin:20px;">
-    <span class="spinner">⏳</span> <span id="loadingText">Mengirim...</span>
-  </div>
-
-  <div class="btn-group" id="action-buttons">
-    <button type="button" class="btn-primary" id="btnKirim" onclick="kirim()" disabled>Kirim Data</button>
-    <button type="button" class="btn-secondary" onclick="show('home')">Kembali</button>
-  </div>
-</div>
-</form>
-
-<div id="notif" class="page" style="text-align:center; padding: 40px 10px;">
-  <span style="font-size: 60px;">✅</span>
-  <h2>Data Berhasil Terkirim!</h2>
-  <button class="btn-primary" style="max-width: 200px;" onclick="location.reload()">Isi Formulir Baru</button>
-</div>
-
 </div>
 
 <script>
+// Paste kembali seluruh isi script Anda di sini (Logika JS tetap sama persis)
 let storageFiles = [];
-// GANTI DENGAN URL DEPLOY TERBARU ANDA
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7YDxcZYcNwxEnyVp7JwKjiHQYdHCotmOVQz_uMxh_OC-cHzWKWR47OVW3iJsxgrQ0/exec";
 
-// ================== LOGIKA EYD ==================
-function formatEYD(str) {
-  return str.toLowerCase().replace(/(^|\s|\.)\S/g, (l) => l.toUpperCase());
-}
+function formatEYD(str) { return str.toLowerCase().replace(/(^|\s|\.)\S/g, (l) => l.toUpperCase()); }
 
-// ================== SETUP LISTENERS ==================
 function setupInputListeners() {
-  // 1. Kapital Otomatis
   document.querySelectorAll('#nama, #nama_ayah, #nama_ibu, #tempat_lahir, #alamat, #kecamatan').forEach(el => {
     el.addEventListener('input', function() {
       let start = this.selectionStart;
@@ -260,24 +267,10 @@ function setupInputListeners() {
       this.setSelectionRange(start, start);
     });
   });
-
-  // 2. Proteksi Angka & Limit Digit
-  // NISN: Harus Digit, Maksimal 10
-  document.getElementById('nisn').addEventListener('input', function() {
-    this.value = this.value.replace(/\D/g, '').slice(0, 10);
-  });
-
-  // NIS: Harus Digit, Maksimal 10
-  document.getElementById('nis').addEventListener('input', function() {
-    this.value = this.value.replace(/\D/g, '').slice(0, 10);
-  });
-
-  // HP: Harus Digit, Maksimal 13
-  document.getElementById('hp').addEventListener('input', function() {
-    this.value = this.value.replace(/\D/g, '').slice(0, 13);
-  });
+  document.getElementById('nisn').addEventListener('input', function() { this.value = this.value.replace(/\D/g, '').slice(0, 10); });
+  document.getElementById('nis').addEventListener('input', function() { this.value = this.value.replace(/\D/g, '').slice(0, 10); });
+  document.getElementById('hp').addEventListener('input', function() { this.value = this.value.replace(/\D/g, '').slice(0, 13); });
 }
-
 setupInputListeners();
 
 function show(id){
@@ -304,20 +297,16 @@ function hapusFile(i) { storageFiles.splice(i, 1); renderFiles(); cekValidasi();
 document.getElementById('mainForm').addEventListener('input', cekValidasi);
 document.getElementById('mainForm').addEventListener('change', cekValidasi);
 
-// ================== LOGIKA VALIDASI TOMBOL ==================
 function cekValidasi() {
   const nisnVal = document.getElementById('nisn').value;
   const nisVal = document.getElementById('nis').value;
   const hpVal = document.getElementById('hp').value;
   const isCekChecked = document.getElementById('cek').checked;
   const form = document.getElementById('mainForm');
-  
-  // VALIDASI UTAMA: 
-  const isNisnValid = nisnVal.length === 10; // NISN HARUS TEPAT 10 DIGIT
-  const isNisValid = nisVal.length > 0;      // NIS BOLEH BERAPAPUN (MAKS 10 DIATUR DI INPUT) TAPI TIDAK KOSONG
-  const isHpValid = hpVal.length >= 10;      // HP MINIMAL 10 DIGIT
+  const isNisnValid = nisnVal.length === 10;
+  const isNisValid = nisVal.length > 0;
+  const isHpValid = hpVal.length >= 10;
   const isFormValid = form.checkValidity();
-  
   document.getElementById('btnKirim').disabled = !(isFormValid && isNisnValid && isNisValid && isHpValid && isCekChecked);
 }
 
@@ -325,20 +314,16 @@ async function kirim() {
   const loader = document.getElementById('loader');
   const actionButtons = document.getElementById('action-buttons');
   const namaSiswa = document.getElementById('nama').value.trim().replace(/[^a-z0-9]/gi, '_');
-
   actionButtons.style.display = "none";
   loader.style.display = "block";
-
   try {
     const readAsBase64 = (file) => new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = () => resolve({ data: reader.result.split(',')[1], type: file.type, ext: file.name.split('.').pop() });
       reader.readAsDataURL(file);
     });
-
     const fileData = await Promise.all(storageFiles.map(readAsBase64));
     const namedFiles = fileData.map((file, index) => ({ ...file, customName: `${namaSiswa}_${index + 1}` }));
-
     const dataObj = {
       kelas: document.getElementById('kelas').value,
       nisn: document.getElementById('nisn').value.trim(),
@@ -365,12 +350,11 @@ async function kirim() {
       jarak: document.getElementById('jarak').value,
       files: namedFiles 
     };
-    
     await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dataObj) });
     show('notif');
   } catch (err) {
     console.error(err);
-    alert("Gagal mengirim. Periksa koneksi.");
+    alert("Gagal mengirim.");
     actionButtons.style.display = "flex";
     loader.style.display = "none";
   }
