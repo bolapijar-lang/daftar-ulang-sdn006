@@ -1,9 +1,6 @@
 // ========== KONFIG ==========
-// SPREADSHEET_ID sekarang otomatis mengambil ID tempat skrip ini berada
 const SPREADSHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
-
-// Folder ID tetap manual karena Google Drive tidak tahu Anda ingin simpan di mana
-const FOLDER_ID = "1coXPqTP2aYz_C_DWH9NvP6g6zpeJox6k3FrFYhUe_9uV9ybPx2E5At__BtS0PhxGIT26M7_A";
+const FOLDER_ID = "1DMNybPr9lAjj8S5KIc74a4iDjJ50uehZQLa1Xmt1f-neAuvqtcJyUoahappcgHrNobo3J3LF";
 const SHEET_NAME = "Respon"; 
 
 function doPost(e) {
@@ -19,13 +16,28 @@ function doPost(e) {
 
     let fileUrls = [];
 
-    // 1. PROSES UPLOAD & RENAME FILE
+    // 1. PROSES UPLOAD & OVERWRITE FILE
     if (data.files && data.files.length > 0) {
       const folder = DriveApp.getFolderById(FOLDER_ID);
+      
       data.files.forEach((f, i) => {
-        // Nama file dibersihkan dari karakter aneh
         const safeName = data.nama.replace(/[^a-zA-Z0-9]/g, "_");
-        const fileName = `${safeName}_${i + 1}.${f.ext}`;
+        const baseName = `${safeName}_${i + 1}`; // Contoh: ADI_1
+        const fileName = `${baseName}.${f.ext}`;
+        
+        // --- LOGIKA PENGHAPUSAN FILE LAMA (OVERWRITE) ---
+        // Mencari file yang namanya diawali dengan baseName (mengabaikan ekstensi)
+        const existingFiles = folder.searchFiles("title contains '" + baseName + "'");
+        while (existingFiles.hasNext()) {
+          const oldFile = existingFiles.next();
+          // Pastikan nama file benar-benar sama sebelum ekstensi (menghindari ADI_11 ikut terhapus)
+          const oldFileNameNoExt = oldFile.getName().substring(0, oldFile.getName().lastIndexOf('.'));
+          if (oldFileNameNoExt === baseName) {
+            oldFile.setTrashed(true); // Memindahkan file lama ke sampah
+          }
+        }
+        // ------------------------------------------------
+        
         const blob = Utilities.newBlob(Utilities.base64Decode(f.data), f.type, fileName);
         const createdFile = folder.createFile(blob);
         fileUrls.push(createdFile.getUrl()); 
@@ -34,13 +46,12 @@ function doPost(e) {
 
     const fileLinks = fileUrls.join(", ");
 
-    // 2. SIMPAN DATA
-    // Menggunakan tanda "'" agar nol di depan dan digit panjang tidak rusak/menjadi format ilmiah
+    // 2. SIMPAN DATA KE SHEET
     sh.appendRow([
       new Date(),
       data.kelas,
-      "'" + data.nisn.toString().trim(),      // WAJIB 10 Digit
-      "'" + data.nis.toString().trim(),       // MAKS 10 Digit
+      "'" + data.nisn.toString().trim(),
+      "'" + data.nis.toString().trim(),
       data.nama.trim(),
       data.tempat_lahir.trim(),
       data.tanggal_lahir,
@@ -48,7 +59,7 @@ function doPost(e) {
       data.agama,
       data.alamat.trim(),
       data.kecamatan.trim(),
-      "'" + data.hp.toString().trim(),        // MAKS 13 Digit
+      "'" + data.hp.toString().trim(),
       data.nama_ayah.trim(),
       data.pekerjaan_ayah,
       data.pendidikan_ayah,
