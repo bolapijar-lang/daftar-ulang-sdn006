@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Informasi Sekolah</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#f8fafc;overflow-x:hidden;}
+    /* KUSTOMISASI WARNA SIDEBAR */
+    .sidebar{background-color:#2563eb;transition:all 0.15s ease-in-out;z-index:1000;border-right:none;}
+    .sidebar-title-text{color:#ffffff;}
+    .sidebar-logo-bg{background-color:#3b82f6;}
+    .sidebar-logo-icon{color:#ffffff;}
+    .nav-link{color:#bfdbfe;padding:0.75rem 1.5rem;display:flex;align-items:center;gap:12px;border-radius:8px;margin:4px 12px;transition:all 0.15s ease-in-out;font-weight:600;}
+    .nav-link .lucide{color:#93c5fd;}
+    .nav-link:hover,.nav-link.active{background-color:#3b82f6;color:#ffffff;}
+    .nav-link:hover .lucide,.nav-link.active .lucide{color:#ffffff;}
+    .sidebar-divider{border-color:#3b82f6;}
+    .sidebar-category-title{color:#93c5fd;}
+    
+    .content-area{min-height:100vh;}
+    .glass-card{background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border:1px solid rgba(226,232,240,0.8);border-radius:16px;box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1);}
+    .loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,0.8);backdrop-filter:blur(3px);display:flex;justify-content:center;align-items:center;z-index:9999;}
+    .calendar-day{text-align:center;padding:8px 0;font-size:0.875rem;color:#475569;}
+    .calendar-header{font-weight:700;color:#1e293b;padding-bottom:8px;}
+    .calendar-today{background-color:#3b82f6;color:white!important;border-radius:50%;font-weight:bold;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;}
+    
+    /* Standarisasi Dropdown Arrow */
+    select.form-control { appearance: auto; -moz-appearance: auto; -webkit-appearance: auto; padding-right: 2rem; }
+    
+    @media (max-width:768px){.sidebar{position:fixed;left:-100%;width:100%;height:100%;} .sidebar.open{left:0;}}
+  </style>
+</head>
+<body>
+  <div id="loader" class="loading-overlay"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div></div>
+  <div class="flex">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar w-72 h-screen sticky top-0 flex-shrink-0 flex flex-col">
+      <div class="p-6 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="sidebar-logo-bg p-2 rounded-lg"><i data-lucide="graduation-cap" class="sidebar-logo-icon w-6 h-6"></i></div>
+          <span class="font-bold text-xl sidebar-title-text">SIS-Edu</span>
+        </div>
+        <button class="md:hidden sidebar-title-text" onclick="toggleSidebar()"><i data-lucide="x" class="w-6 h-6"></i></button>
+      </div>
+      <nav class="mt-4 flex-grow overflow-y-auto pb-6">
+        <a href="#" onclick="showPage('dashboard')" class="nav-link active" id="btn-dashboard"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</a>
+        <a href="#" onclick="showPage('sekolah')" class="nav-link" id="btn-sekolah"><i data-lucide="school" class="w-5 h-5"></i> Data Sekolah</a>
+        <a href="#" onclick="showPage('pegawai')" class="nav-link" id="btn-pegawai"><i data-lucide="users" class="w-5 h-5"></i> Data Pegawai</a>
+        <a href="#" onclick="showPage('siswa')" class="nav-link" id="btn-siswa"><i data-lucide="user-round" class="w-5 h-5"></i> Data Siswa</a>
+        
+        <hr class="my-4 mx-6 sidebar-divider">
+        <p class="px-6 text-xs font-bold sidebar-category-title uppercase tracking-wider">Mutasi</p>
+        <a href="#" onclick="showPage('mutasi-masuk')" class="nav-link" id="btn-mutasi-masuk"><i data-lucide="log-in" class="w-5 h-5"></i> Mutasi Masuk</a>
+        <a href="#" onclick="showPage('mutasi-keluar')" class="nav-link" id="btn-mutasi-keluar"><i data-lucide="log-out" class="w-5 h-5"></i> Mutasi Keluar</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-grow p-4 md:p-8 h-screen overflow-y-auto">
+      <div class="flex md:hidden justify-between items-center mb-6">
+        <button onclick="toggleSidebar()" class="p-2 bg-white rounded-lg shadow-sm"><i data-lucide="menu" class="w-6 h-6"></i></button>
+        <span class="font-bold">Sistem Sekolah</span>
+      </div>
+
+      <!-- DASHBOARD (DIROMBAK TOTAL UNTUK REKAP AGAMA & SOSIAL) -->
+      <section id="page-dashboard" class="page-content">
+        <h1 class="text-2xl font-bold text-slate-800 mb-6">Dashboard Ringkasan</h1>
+        
+        <!-- Baris 1: Ringkasan Kartu -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div class="glass-card p-6 border-l-4 border-blue-500"><p class="text-slate-500 text-sm font-medium">Total Siswa</p><h3 id="stat-siswa" class="text-3xl font-bold text-slate-800">0</h3></div>
+          <div class="glass-card p-6 border-l-4 border-emerald-500"><p class="text-slate-500 text-sm font-medium">Total Pegawai</p><h3 id="stat-pegawai" class="text-3xl font-bold text-slate-800">0</h3></div>
+          <div class="glass-card p-6 border-l-4 border-amber-500"><p class="text-slate-500 text-sm font-medium">Mutasi Masuk</p><h3 id="stat-masuk" class="text-3xl font-bold text-slate-800">0</h3></div>
+          <div class="glass-card p-6 border-l-4 border-rose-500"><p class="text-slate-500 text-sm font-medium">Mutasi Keluar</p><h3 id="stat-keluar" class="text-3xl font-bold text-slate-800">0</h3></div>
+        </div>
+        
+        <!-- Baris 2: Statistik Utama & Kalender -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          <div class="glass-card p-6"><h5 class="font-bold mb-4">Statistik Sekolah</h5><canvas id="mainChart" height="200"></canvas></div>
+          <div class="glass-card p-6">
+            <div class="flex justify-between items-center mb-4"><h5 class="font-bold m-0">Kalender</h5><span id="cal-month" class="text-sm font-semibold text-blue-600"></span></div>
+            <div class="grid grid-cols-7 gap-1" id="calendar-grid"></div>
+          </div>
+        </div>
+        
+        <!-- Baris 3: Rekap Pegawai & Rombel Standar -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div class="glass-card p-6 overflow-x-auto">
+            <h5 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5 text-emerald-500"></i> Rekapitulasi Pegawai</h5>
+            <table class="table table-hover table-sm text-sm border-t"><thead class="bg-slate-50 text-slate-600"><tr><th class="py-2">No</th><th class="py-2">Jabatan</th><th class="py-2 text-center">L</th><th class="py-2 text-center">P</th><th class="py-2 text-center">Jumlah</th></tr></thead><tbody id="tabel-rekap-pegawai"><tr><td colspan="5" class="text-center py-4 text-slate-400">Memuat data...</td></tr></tbody></table>
+          </div>
+          <div class="glass-card p-6 overflow-x-auto">
+            <h5 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="user-round" class="w-5 h-5 text-blue-500"></i> Rekapitulasi Rombel</h5>
+            <table class="table table-hover table-sm text-sm border-t"><thead class="bg-slate-50 text-slate-600"><tr><th class="py-2">No</th><th class="py-2">Rombel</th><th class="py-2 text-center">L</th><th class="py-2 text-center">P</th><th class="py-2 text-center">Jumlah</th></tr></thead><tbody id="tabel-rekap-rombel"><tr><td colspan="5" class="text-center py-4 text-slate-400">Memuat data...</td></tr></tbody></table>
+          </div>
+        </div>
+
+        <!-- Baris 4: Rekap Agama Matriks -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <div class="glass-card p-6 lg:col-span-2 overflow-x-auto">
+            <h5 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="book-heart" class="w-5 h-5 text-amber-500"></i> Rekapitulasi Agama per Rombel</h5>
+            <table class="table table-hover table-sm text-sm border-t" id="tabel-rekap-agama-container">
+                <!-- Tbody diprint JS -->
+            </table>
+          </div>
+          <div class="glass-card p-6 lg:col-span-1">
+            <h5 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-5 h-5 text-amber-500"></i> Grafik Agama</h5>
+            <div style="height: 250px;"><canvas id="agamaChart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Baris 5: Rekap Sosial PKH & PIP (DIPERBAIKI JADI DIBAGI 2 / 50:50) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div class="glass-card p-6 overflow-x-auto">
+            <h5 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="wallet" class="w-5 h-5 text-indigo-500"></i> Rekapitulasi Program Sosial (PKH & PIP)</h5>
+            <table class="table table-hover table-bordered table-sm text-sm border-t align-middle">
+                <thead class="bg-slate-50 text-slate-600 text-center">
+                    <tr>
+                        <th rowspan="2" class="py-2">No</th>
+                        <th rowspan="2" class="py-2">Rombel</th>
+                        <th colspan="3" class="py-2 border-l">Penerima PKH</th>
+                        <th colspan="3" class="py-2 border-l">Penerima PIP</th>
+                    </tr>
+                    <tr>
+                        <th class="py-1 border-l">L</th><th class="py-1">P</th><th class="py-1 bg-blue-50">Jml</th>
+                        <th class="py-1 border-l">L</th><th class="py-1">P</th><th class="py-1 bg-emerald-50">Jml</th>
+                    </tr>
+                </thead>
+                <tbody id="tabel-rekap-sosial">
+                    <!-- Tbody diprint JS -->
+                </tbody>
+            </table>
+          </div>
+          <div class="glass-card p-6">
+            <h5 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="bar-chart" class="w-5 h-5 text-indigo-500"></i> Grafik Sosial</h5>
+            <div style="height: 250px;"><canvas id="sosialChart"></canvas></div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- DATA SEKOLAH -->
+      <section id="page-sekolah" class="page-content hidden">
+        <h1 class="text-2xl font-bold text-slate-800 mb-6">Profil Sekolah</h1>
+        <div class="glass-card p-8 w-full">
+          <form id="form-sekolah" class="space-y-6">
+            <div id="sekolah-form-container"></div><hr class="border-slate-200">
+            <button type="submit" class="btn btn-primary px-8 py-3 rounded-xl mt-6 font-bold w-full md:w-auto shadow-md">Simpan Data Sekolah</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- DATA TABEL MODUL -->
+      <section id="page-list" class="page-content hidden">
+        <h1 id="list-title" class="text-2xl font-bold text-slate-800 mb-6">Data Modul</h1>
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 items-center">
+            <button id="btn-tambah" onclick="openModalTambah()" class="btn btn-primary flex items-center gap-2 whitespace-nowrap"><i data-lucide="plus" class="w-4 h-4"></i> Tambah</button>
+            <button id="btn-edit" onclick="editSelected()" class="btn btn-warning text-white flex items-center gap-2 whitespace-nowrap"><i data-lucide="edit" class="w-4 h-4"></i> Edit</button>
+            <button id="btn-hapus" onclick="deleteSelected()" class="btn btn-danger flex items-center gap-2 whitespace-nowrap"><i data-lucide="trash-2" class="w-4 h-4"></i> Hapus</button>
+            
+            <button id="btn-mutasikan" onclick="openMutasikan()" class="btn btn-info text-white flex items-center gap-2 whitespace-nowrap" style="display: none;"><i data-lucide="external-link" class="w-4 h-4"></i> Mutasikan</button>
+            <button id="btn-kembali" onclick="kembalikanSiswaMutasi()" class="btn btn-info text-white flex items-center gap-2 whitespace-nowrap" style="display: none;"><i data-lucide="user-check" class="w-4 h-4"></i> Tarik Data (Batal Mutasi)</button>
+            
+            <div class="border-l-2 border-slate-300 mx-1 h-8 self-center" id="divider-import"></div>
+            <button id="btn-export" onclick="exportToExcel()" class="btn btn-outline-primary flex items-center gap-2 whitespace-nowrap" style="display: none;" title="Export Data (Excel)"><i data-lucide="download" class="w-4 h-4"></i></button>
+            <button id="btn-import" onclick="document.getElementById('file-import').click()" class="btn btn-outline-success flex items-center gap-2 whitespace-nowrap" style="display: none;" title="Import Data (Excel)"><i data-lucide="upload" class="w-4 h-4"></i></button>
+            <input type="file" id="file-import" accept=".xlsx, .xls" class="hidden" onchange="importFromExcel(event)">
+            <button id="btn-cetak" onclick="cetakSelected()" class="btn btn-success flex items-center gap-2 whitespace-nowrap" style="display: none;"><i data-lucide="printer" class="w-4 h-4"></i> Cetak Surat</button>
+          </div>
+          <div class="flex gap-2 w-full md:w-auto">
+            <select id="filter-rombel" class="form-control hidden" style="width: 140px;" onchange="applyFilters()"><option value="">Semua Rombel</option></select>
+            <input type="text" id="filter-nama" placeholder="Cari nama..." class="form-control" style="width: 200px;" oninput="applyFilters()">
+            <button onclick="refreshData(true)" class="btn btn-secondary flex items-center gap-2" title="Refresh Data"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+        <div class="glass-card overflow-hidden">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0"><thead class="bg-slate-50"><tr id="table-head"></tr></thead><tbody id="table-body"></tbody></table>
+          </div>
+        </div>
+        <div class="flex flex-col md:flex-row justify-between items-center mt-6 text-sm text-slate-600 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+           <div id="pagination-info" class="font-medium mb-3 md:mb-0">Menampilkan 0-0 dari 0 data</div>
+           <div class="flex flex-col md:flex-row items-center gap-4">
+             <div class="flex items-center gap-2">
+               <span>Baris:</span>
+               <select id="page-size" class="form-control form-select-sm w-24" onchange="changePageSize()"><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="all">Semua</option></select>
+             </div>
+             <div class="flex gap-1">
+               <button class="btn btn-sm btn-outline-secondary" onclick="changePage(-1)">Prev</button>
+               <button class="btn btn-sm btn-outline-secondary" onclick="changePage(1)">Next</button>
+             </div>
+           </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL FORM -->
+  <div class="modal fade" id="modalData" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content border-0 rounded-2xl">
+        <div class="modal-header bg-slate-50 border-b">
+          <h5 class="modal-title font-bold text-xl" id="modalTitle">Form Data</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body bg-slate-50 p-4 md:p-8"><form id="dynamic-form" class="space-y-6" data-action=""></form></div>
+        <div class="modal-footer border-t bg-white">
+          <button type="button" class="btn btn-light rounded-lg px-6" data-bs-dismiss="modal">Tutup</button>
+          <button type="submit" form="dynamic-form" class="btn btn-primary rounded-lg px-8 py-2 font-bold shadow-md">Simpan Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+  
+  <!-- GITHUB BRIDGE LOGIC (Satu-satunya tambahan di HTML) -->
+<script>
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbziSr4jup-O3KeZUO7cY1QqUHCQW6k_ttDd0gIyQIt__pC5YkQFXUKnxqM0AyyVJhUY/exec";
+
+  if (typeof google === 'undefined' || !google.script) {
+    window.google = {
+      script: {
+        run: new Proxy({}, {
+          get: function(target, functionName) {
+            return function(...args) {
+              const runner = {
+                successHandler: (res) => {},
+                failureHandler: (err) => {},
+                withSuccessHandler: function(cb) { this.successHandler = cb; return this; },
+                withFailureHandler: function(cb) { this.failureHandler = cb; return this; }
+              };
+              fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'cors',
+                body: JSON.stringify({ functionName, args })
+              })
+              .then(res => res.json())
+              .then(data => runner.successHandler(data))
+              .catch(err => runner.failureHandler(err));
+              return runner;
+            }
+          }
+        })
+      }
+    };
+  }
+  //sampai sini
+  
+    let activePage = 'dashboard'; let currentModule = ''; let myChart = null; let myAgamaChart = null; let mySosialChart = null;
+    let refDataDropdown = {}; let dataState = { raw: [], filtered: [], page: 1, size: 10, selectedId: null };
+    const bulanIndo = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+    // ==========================================
+    // SISTEM NORMALISASI TANGGAL KE STANDAR MESIN (YYYY-MM-DD)
+    // ==========================================
+    
+    // 1. Tampil di Tabel menjadi "17 Agustus 1945" (Hanya untuk Estetika Mata di UI)
+    function formatKeIndo(str) {
+      if(!str) return '';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(str)) { 
+          const p = str.split('-'); 
+          return `${parseInt(p[2], 10)} ${bulanIndo[parseInt(p[1], 10)-1]} ${p[0]}`; 
+      }
+      return str;
+    }
+    
+    // 2. Memaksa SEMUA input import Excel menjadi format Mesin Baku YYYY-MM-DD
+    function normalizeDate(str) {
+      if(!str) return '';
+      // Jika sudah baku yyyy-mm-dd
+      if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+
+      // Jika format Indonesia dd/mm/yyyy atau dd-mm-yyyy dari excel/manual
+      let match = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})$/);
+      if (match) {
+        let p1 = parseInt(match[1], 10), p2 = parseInt(match[2], 10), y = match[3];
+        if (y.length === 2) y = (parseInt(y) < 50 ? '20' : '19') + y;
+        let d = p1, m = p2;
+        if (p1 > 12) { d = p1; m = p2; } else if (p2 > 12) { d = p2; m = p1; }
+        return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      }
+
+      // Format Serial Excel (Contoh: 45123)
+      if (!isNaN(str) && Number(str) > 30000) {
+         let dt = new Date(Math.round((str - 25569)*86400*1000));
+         return dt.toISOString().split('T')[0];
+      }
+
+      // Format string native js
+      let dt = new Date(str);
+      if (!isNaN(dt.getTime())) {
+         return dt.toISOString().split('T')[0];
+      }
+      return str;
+    }
+
+    // 3. Mengkonversi format jadul di Sheet (jika masih ada) menjadi YYYY-MM-DD agar masuk kalender
+    function formatKeInputDate(str) {
+      if(!str) return ''; 
+      if (str.includes('T')) str = str.split('T')[0];
+      if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str; // Sudah standar mesin!
+
+      // Antisipasi kalau di sheet versi lama masih ada sisa data teks "17 Agustus 1945"
+      const match = str.match(/^(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})$/);
+      if (match) {
+        const idx = bulanIndo.findIndex(b => b.toLowerCase() === match[2].toLowerCase());
+        if(idx !== -1) {
+          const m = String(idx + 1).padStart(2, '0');
+          const d = match[1].padStart(2, '0');
+          return `${match[3]}-${m}-${d}`;
+        }
+      }
+      return normalizeDate(str); // Sapu bersih semuanya ke yyyy-mm-dd
+    }
+
+    function formatRupiah(el) {
+      let val = el.value.replace(/[^,\d]/g, ''); let split = val.split(','); let sisa = split[0].length % 3;
+      let rupiah = split[0].substr(0, sisa); let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+      if (ribuan) { let separator = sisa ? '.' : ''; rupiah += separator + ribuan.join('.'); }
+      rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah; el.value = rupiah;
+    }
+
+    const formSchemas = {
+      'sekolah': [
+        { group: 'Identitas Sekolah', fields: [ { name: 'Nama Sekolah', fullWidth: true }, { name: 'NPSN' }, { name: 'NSS' }, { name: 'Status Sekolah', type: 'select', options: ['Negeri', 'Swasta'] }, { name: 'Akreditasi', type: 'select', options: ['A (Amat Baik)', 'B (Baik)', 'C (Cukup)', 'Belum Terakreditasi'] }, { name: 'Kurikulum' } ]},
+        { group: 'Lokasi Sekolah', fields: [ { name: 'Alamat Lengkap', fullWidth: true }, { name: 'RT' }, { name: 'Kelurahan' }, { name: 'Kecamatan' }, { name: 'Kota' }, { name: 'Provinsi' }, { name: 'Lintang' }, { name: 'Bujur' } ]},
+        { group: 'Kontak', fields: [ { name: 'Nomor Telepon' }, { name: 'Email' }, { name: 'Website' } ]},
+        { group: 'Data Pendukung', fields: [ { name: 'Nomor Rekening BOSP' }, { name: 'Nomor Rekening BOSDA' }, { name: 'Waktu Penyelenggaraan' }, { name: 'Daya Listrik' }, { name: 'Nomor PLN' }, { name: 'Akses Internet' }, { name: 'Kecepatan Internet' }, { name: 'Nomor Internet' }, { name: 'Nomor PDAM' } ]},
+        { group: 'Sanitasi', fields: [ { name: 'Jumlah Toilet Siswa Pria' }, { name: 'Jumlah Toilet Siswa Wanita' }, { name: 'Jumlah Toilet Guru' } ]}
+      ],
+      'pegawai': [
+        { group: 'Data Pribadi', fields: [ { name: 'Nama', fullWidth: true }, { name: 'NIK' }, { name: 'Jenis Kelamin', type: 'select', ref: 'kd kelamin' }, { name: 'Tempat Lahir' }, { name: 'Tanggal Lahir', type: 'date' }, { name: 'Agama', type: 'select', ref: 'kd agama' }, { name: 'Nama Ibu Kandung' }, { name: 'Status Kawin', type: 'select', ref: 'kd kawin' }, { name: 'Alamat', fullWidth: true }, { name: 'RT' }, { name: 'Kelurahan' }, { name: 'Kecamatan' }, { name: 'Kode Pos' }, { name: 'NPWP' }, { name: 'Nomor BPJS' }, { name: 'Email' }, { name: 'Nomor HP' } ]},
+        { group: 'Data Kepegawaian', fields: [ { name: 'NIP' }, { name: 'NUPTK' }, { name: 'Pangkat', type: 'select', ref: 'kd pangkat' }, { name: 'Golongan', type: 'select', ref: 'kd golongan' }, { name: 'Jabatan', type: 'select', ref: 'kd jabatan' }, { name: 'Jenis', type: 'select', ref: 'kd jenis' }, { name: 'Status', type: 'select', ref: 'kd status' }, { name: 'SK CPNS' }, { name: 'Tgl CPNS', type: 'date' }, { name: 'SK PNS PPPK' }, { name: 'Tanggal PNS PPPK', type: 'date' }, { name: 'Penanda Tangan SK' }, { name: 'TMT Sekolah', type: 'date' } ]},
+        { group: 'Data Pasangan', fields: [ { name: 'Nama Suami Istri', fullWidth: true }, { name: 'NIP Pasangan' }, { name: 'Pekerjaan Pasangan', type: 'select', ref: 'kd pekerjaan' } ]},
+        { group: 'Data Pendidikan', fields: [ { name: 'Jenjang', type: 'select', ref: 'kd pendidikan' }, { name: 'Jurusan' }, { name: 'Program Studi' }, { name: 'Fakultas' }, { name: 'Nama Perguruan Tinggi', fullWidth: true }, { name: 'Gelar Depan' }, { name: 'Gelar Belakang' }, { name: 'Nomor Ijazah' }, { name: 'Tahun Ijazah' }, { name: 'Tahun Sertifikasi' }, { name: 'Nomor Sertifikasi' }, { name: 'Nomor Peserta' }, { name: 'NRG' } ]}
+      ],
+      'siswa': [
+        { group: 'Data Siswa', fields: [ { name: 'Nama', fullWidth: true }, { name: 'Rombel', type: 'select', ref: 'kd rombel' }, { name: 'Jenis Kelamin', type: 'select', ref: 'kd kelamin' }, { name: 'NISN' }, { name: 'NIS' }, { name: 'NIK Siswa' }, { name: 'Nomor KK' }, { name: 'Tempat Lahir' }, { name: 'Tanggal Lahir', type: 'date' }, { name: 'Agama', type: 'select', ref: 'kd agama' }, { name: 'Berkebutuhan Khusus Siswa', type: 'select', ref: 'kd berkebutuhan' }, { name: 'Tinggal Bersama', type: 'select', ref: 'kd tinggal' }, { name: 'Mode Transportasi', type: 'select', ref: 'kd transportasi' }, { name: 'Alamat Siswa', fullWidth: true }, { name: 'RT' }, { name: 'Kelurahan' }, { name: 'Kecamatan' }, { name: 'Kode POS' } ]},
+        { group: 'Data Ayah', fields: [ { name: 'Nama Ayah', fullWidth: true }, { name: 'NIK Ayah' }, { name: 'Tanggal Lahir Ayah', type: 'date' }, { name: 'Pendidikan Ayah', type: 'select', ref: 'kd pendidikan' }, { name: 'Pekerjaan Ayah', type: 'select', ref: 'kd pekerjaan' }, { name: 'Penghasilan Ayah' }, { name: 'Berkebutuhan Khusus Ayah', type: 'select', ref: 'kd berkebutuhan' } ]},
+        { group: 'Data Ibu', fields: [ { name: 'Nama Ibu', fullWidth: true }, { name: 'NIK Ibu' }, { name: 'Tanggal Lahir Ibu', type: 'date' }, { name: 'Pendidikan Ibu', type: 'select', ref: 'kd pendidikan' }, { name: 'Pekerjaan Ibu', type: 'select', ref: 'kd pekerjaan' }, { name: 'Penghasilan Ibu' }, { name: 'Berkebutuhan Khusus Ibu', type: 'select', ref: 'kd berkebutuhan' } ]},
+        { group: 'Data Wali', fields: [ { name: 'Nama Wali', fullWidth: true }, { name: 'NIK Wali' }, { name: 'Tanggal Lahir Wali', type: 'date' }, { name: 'Pendidikan Wali', type: 'select', ref: 'kd pendidikan' }, { name: 'Pekerjaan Wali', type: 'select', ref: 'kd pekerjaan' }, { name: 'Penghasilan Wali' } ]},
+        { group: 'Data Pendukung', fields: [ { name: 'Lingkar Kepala' }, { name: 'Tinggi Badan' }, { name: 'Berat Badan' }, { name: 'Anak Ke' }, { name: 'Jumlah Saudara' }, { name: 'Hobi' }, { name: 'Cita Cita' }, { name: 'Jarak Rumah Ke Sekolah' }, { name: 'Waktu Tempuh' } ]},
+        { group: 'Data Sosial', fields: [ { name: 'Penerima PKH', type: 'select', options: ['Ya', 'Tidak'] }, { name: 'Nomor PKH' }, { name: 'Penerima PIP', type: 'select', options: ['Ya', 'Tidak'] }, { name: 'Tahun Terakhir Menerima PIP' } ]},
+        { group: 'Data Prestasi', fields: [ { name: 'Prestasi', fullWidth: true }, { name: 'Juara' }, { name: 'Tingkat Prestasi' } ]}
+      ],
+      'mutasi-masuk': [
+        { group: 'Data Siswa Masuk', fields: [ { name: 'Nama', fullWidth: true }, { name: 'Rombel' }, { name: 'NISN' }, { name: 'Tempat Lahir' }, { name: 'Tanggal Lahir', type: 'date' }, { name: 'Jenis Kelamin', type: 'select', ref: 'kd kelamin' } ]},
+        { group: 'Asal Sekolah & Surat', fields: [ { name: 'Nama Sekolah', fullWidth: true }, { name: 'NPSN' }, { name: 'Alamat Sekolah', fullWidth: true }, { name: 'Kelurahan Sekolah' }, { name: 'Kecamatan Sekolah' }, { name: 'Kab Kota' }, { name: 'Propinsi' }, { name: 'Alasan Pindah', fullWidth: true }, { name: 'Tanggal Pindah', type: 'date' }, { name: 'Nomor Surat' } ]}
+      ],
+      'mutasi-keluar': [
+        { group: 'Data Utama Siswa (Read Only)', fields: [ 
+          { name: 'Nama', id: 'mutkel-nama', readonly: true, fullWidth: true }, 
+          { name: 'Rombel', id: 'mutkel-rombel', readonly: true }, 
+          { name: 'NISN', id: 'mutkel-nisn', readonly: true },
+          { name: 'Jenis Kelamin', id: 'mutkel-jk', readonly: true }, 
+          { name: 'Tempat Lahir', id: 'mutkel-tempat', readonly: true }, 
+          { name: 'Tanggal Lahir', type: 'date', id: 'mutkel-tgl', readonly: true } 
+        ]},
+        { group: 'Tujuan Sekolah & Surat Mutasi', fields: [ { name: 'Nama Sekolah', fullWidth: true }, { name: 'NPSN' }, { name: 'Alamat Sekolah', fullWidth: true }, { name: 'Kelurahan Sekolah' }, { name: 'Kecamatan Sekolah' }, { name: 'Kab Kota' }, { name: 'Propinsi' }, { name: 'Alasan Pindah', fullWidth: true }, { name: 'Tanggal Pindah', type: 'date' }, { name: 'Nomor Surat' } ]}
+      ],
+      'form-mutasikan': [
+        { group: 'Tujuan Sekolah & Surat Mutasi', fields: [ { name: 'Nama Sekolah', fullWidth: true }, { name: 'NPSN' }, { name: 'Alamat Sekolah', fullWidth: true }, { name: 'Kelurahan Sekolah' }, { name: 'Kecamatan Sekolah' }, { name: 'Kab Kota' }, { name: 'Propinsi' }, { name: 'Alasan Pindah', fullWidth: true }, { name: 'Tanggal Pindah', type: 'date' }, { name: 'Nomor Surat' } ]}
+      ]
+    };
+
+    window.onload = () => {
+      lucide.createIcons(); renderCalendar();
+      setLoading(true);
+      // PERBAIKAN: Memastikan data referensi terdownload SEBELUM dashboard / form dimuat. 
+      // Hal ini menghilangkan 'race condition' dan menjamin urutan agama persis sesuai Sheet 'Tabel'
+      google.script.run.withSuccessHandler(data => { 
+          refDataDropdown = data; 
+          showPage('dashboard'); 
+          initForms(); 
+      }).getReferenceData();
+    };
+
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+    function showPage(pageId) {
+      setLoading(true); document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden')); document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      const targetPage = pageId === 'dashboard' || pageId === 'sekolah' ? `page-${pageId}` : 'page-list';
+      document.getElementById(targetPage).classList.remove('hidden'); document.getElementById(`btn-${pageId}`).classList.add('active');
+      if (window.innerWidth < 768) toggleSidebar();
+      if (pageId === 'dashboard') loadDashboard(); else if (pageId === 'sekolah') loadSekolahForm(); else loadModuleData(pageId); 
+    }
+
+    function renderCalendar() {
+      const date = new Date(); const month = date.getMonth(); const year = date.getFullYear(); const today = date.getDate();
+      document.getElementById('cal-month').innerText = `${bulanIndo[month]} ${year}`;
+      const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
+      ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].forEach(d => grid.innerHTML += `<div class="calendar-day calendar-header">${d}</div>`);
+      for(let i = 0; i < new Date(year, month, 1).getDay(); i++) grid.innerHTML += `<div class="calendar-day"></div>`;
+      for(let i = 1; i <= new Date(year, month + 1, 0).getDate(); i++) grid.innerHTML += `<div class="calendar-day"><span class="${i === today ? 'calendar-today shadow-md' : ''}">${i}</span></div>`;
+    }
+
+    function loadDashboard() {
+      let reqCount = 0; let dataPegawai = []; let dataSiswa = [];
+      const checkComplete = () => { if(reqCount === 3) { renderRekap(dataPegawai, dataSiswa); setLoading(false); } };
+      google.script.run.withSuccessHandler(data => { try { document.getElementById('stat-siswa').innerText = data.stats.siswa; document.getElementById('stat-pegawai').innerText = data.stats.pegawai; document.getElementById('stat-masuk').innerText = data.stats.mutasiMasuk; document.getElementById('stat-keluar').innerText = data.stats.mutasiKeluar; renderChart(data.chartData); } catch(e){} reqCount++; checkComplete(); }).withFailureHandler(e => { reqCount++; checkComplete(); }).getDashboardData();
+      google.script.run.withSuccessHandler(data => { dataPegawai = data || []; reqCount++; checkComplete(); }).withFailureHandler(e => { reqCount++; checkComplete(); }).getSheetData('Pegawai');
+      google.script.run.withSuccessHandler(data => { dataSiswa = data || []; reqCount++; checkComplete(); }).withFailureHandler(e => { reqCount++; checkComplete(); }).getSheetData('Siswa');
+    }
+
+    // ===============================================
+    // UPDATE BESAR: RENDER DASHBOARD (AGAMA & SOSIAL)
+    // ===============================================
+    function renderRekap(pegawai, siswa) {
+      // 1. Rekap Pegawai
+      let mapPeg = {}; pegawai.forEach(p => { let jab = p.jabatan || 'Belum Diisi'; let jk = (p.jenis_kelamin || '').toLowerCase().trim(); if(!mapPeg[jab]) mapPeg[jab] = { L: 0, P: 0, T: 0 }; if(jk === 'laki-laki' || jk === 'l' || jk === 'pria') mapPeg[jab].L++; else if(jk === 'perempuan' || jk === 'p' || jk === 'wanita') mapPeg[jab].P++; mapPeg[jab].T++; });
+      let htmlPeg = ''; let noPeg = 1; let totPegL=0, totPegP=0, totPegT=0;
+      for(let jab in mapPeg) { htmlPeg += `<tr><td class="py-2">${noPeg++}</td><td class="py-2 font-medium">${jab}</td><td class="py-2 text-center">${mapPeg[jab].L}</td><td class="py-2 text-center">${mapPeg[jab].P}</td><td class="py-2 text-center font-bold text-slate-800">${mapPeg[jab].T}</td></tr>`; totPegL += mapPeg[jab].L; totPegP += mapPeg[jab].P; totPegT += mapPeg[jab].T; }
+      htmlPeg = htmlPeg === '' ? '<tr><td colspan="5" class="text-center py-4 text-slate-400">Tidak ada data pegawai</td></tr>' : htmlPeg + `<tr class="bg-blue-50/50 font-bold border-t"><td colspan="2" class="py-3 text-right">TOTAL KESELURUHAN</td><td class="text-center py-3 text-blue-700">${totPegL}</td><td class="text-center py-3 text-blue-700">${totPegP}</td><td class="text-center py-3 text-blue-700 text-lg">${totPegT}</td></tr>`;
+      document.getElementById('tabel-rekap-pegawai').innerHTML = htmlPeg;
+
+      // 2. Rekap Rombel L/P
+      let mapSis = {}; 
+      siswa.forEach(s => { let rom = s.rombel || 'Belum Diisi'; let jk = (s.jenis_kelamin || '').toLowerCase().trim(); if(!mapSis[rom]) mapSis[rom] = { L: 0, P: 0, T: 0 }; if(jk === 'laki-laki' || jk === 'l' || jk === 'pria') { mapSis[rom].L++; } else if(jk === 'perempuan' || jk === 'p' || jk === 'wanita') { mapSis[rom].P++; } mapSis[rom].T++; });
+      let htmlSis = ''; let noSis = 1; let totSisL=0, totSisP=0, totSisT=0;
+      Object.keys(mapSis).sort((a,b) => a.localeCompare(b, undefined, {numeric: true})).forEach(rom => { htmlSis += `<tr><td class="py-2">${noSis++}</td><td class="py-2 font-medium">${rom}</td><td class="py-2 text-center">${mapSis[rom].L}</td><td class="py-2 text-center">${mapSis[rom].P}</td><td class="py-2 text-center font-bold text-slate-800">${mapSis[rom].T}</td></tr>`; totSisL += mapSis[rom].L; totSisP += mapSis[rom].P; totSisT += mapSis[rom].T; });
+      htmlSis = htmlSis === '' ? '<tr><td colspan="5" class="text-center py-4 text-slate-400">Tidak ada data siswa</td></tr>' : htmlSis + `<tr class="bg-emerald-50/50 font-bold border-t"><td colspan="2" class="py-3 text-right">TOTAL KESELURUHAN</td><td class="text-center py-3 text-emerald-700">${totSisL}</td><td class="text-center py-3 text-emerald-700">${totSisP}</td><td class="text-center py-3 text-emerald-700 text-lg">${totSisT}</td></tr>`;
+      document.getElementById('tabel-rekap-rombel').innerHTML = htmlSis;
+
+      // 3. REKAP AGAMA (MATRIKS ROMBEL KE SAMPING BERDASARKAN SHEET TABEL)
+      let rombels = [...new Set(siswa.map(s => s.rombel || 'Belum Diisi'))].sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+      
+      // Ambil susunan referensi agama dari dropdown Tabel, dan daftar agama aktual yang ada di database siswa
+      let refAgamas = refDataDropdown['kd agama'] || [];
+      let rawAgamas = [...new Set(siswa.map(s => s.agama ? s.agama.trim() : 'Belum Diisi'))];
+      
+      // PERBAIKAN: Mengurutkan list agama aktual berdasarkan urutan di Sheet Tabel
+      let agamas = rawAgamas.sort((a, b) => {
+          if (a === 'Belum Diisi') return 1;
+          if (b === 'Belum Diisi') return -1;
+          let idxA = refAgamas.findIndex(ref => ref.toLowerCase() === a.toLowerCase());
+          let idxB = refAgamas.findIndex(ref => ref.toLowerCase() === b.toLowerCase());
+          
+          if (idxA === -1 && idxB === -1) return a.localeCompare(b); // Jika dua-duanya tidak ada di tabel, urut alfabet
+          if (idxA === -1) return 1; // Jika A tidak ada, lempar ke kanan
+          if (idxB === -1) return -1; // Jika B tidak ada, lempar ke kanan
+          return idxA - idxB; // Urutkan berdasarkan posisi index di Sheet 'Tabel'
+      });
+
+      let mapAgm = {}; 
+      rombels.forEach(r => { mapAgm[r] = { total: 0 }; agamas.forEach(a => mapAgm[r][a] = 0); });
+      siswa.forEach(s => { let r = s.rombel || 'Belum Diisi'; let a = s.agama ? s.agama.trim() : 'Belum Diisi'; mapAgm[r][a]++; mapAgm[r].total++; });
+
+      let thAgama = `<thead class="bg-slate-50 text-slate-600 text-center"><tr><th class="py-2">No</th><th class="py-2 text-left">Rombel</th>`;
+      agamas.forEach(a => thAgama += `<th class="py-2">${a}</th>`);
+      thAgama += `<th class="py-2 bg-amber-50">Total</th></tr></thead>`;
+
+      let tbAgama = '<tbody>'; let noAgm = 1; let totAgmGlobal = {}; agamas.forEach(a => totAgmGlobal[a] = 0); let grandTotAgm = 0;
+      rombels.forEach(r => {
+          tbAgama += `<tr><td class="py-2 text-center">${noAgm++}</td><td class="py-2 font-medium">${r}</td>`;
+          agamas.forEach(a => { tbAgama += `<td class="py-2 text-center">${mapAgm[r][a]}</td>`; totAgmGlobal[a] += mapAgm[r][a]; });
+          tbAgama += `<td class="py-2 text-center font-bold text-amber-700">${mapAgm[r].total}</td></tr>`;
+          grandTotAgm += mapAgm[r].total;
+      });
+      tbAgama += `<tr class="bg-amber-50/50 font-bold border-t"><td colspan="2" class="py-3 text-right">TOTAL KESELURUHAN</td>`;
+      agamas.forEach(a => tbAgama += `<td class="text-center py-3">${totAgmGlobal[a]}</td>`);
+      tbAgama += `<td class="text-center py-3 text-amber-700 text-lg">${grandTotAgm}</td></tr></tbody>`;
+      
+      document.getElementById('tabel-rekap-agama-container').innerHTML = thAgama + tbAgama;
+
+      // Grafik Agama (Stacked Bar Chart per Rombel)
+      const colorsAgama = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
+      let dsAgama = agamas.map((a, i) => { return { label: a, data: rombels.map(r => mapAgm[r][a]), backgroundColor: colorsAgama[i % colorsAgama.length] }; });
+      if(myAgamaChart) myAgamaChart.destroy();
+      myAgamaChart = new Chart(document.getElementById('agamaChart').getContext('2d'), { type: 'bar', data: { labels: rombels, datasets: dsAgama }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } } });
+
+      // 4. REKAP SOSIAL (PKH & PIP PER ROMBEL)
+      let mapSosial = {}; let totSos = { pkhL:0, pkhP:0, pkhJ:0, pipL:0, pipP:0, pipJ:0 };
+      rombels.forEach(r => mapSosial[r] = { pkhL:0, pkhP:0, pkhJ:0, pipL:0, pipP:0, pipJ:0 });
+
+      siswa.forEach(s => {
+          let r = s.rombel || 'Belum Diisi';
+          let jk = (s.jenis_kelamin || '').toLowerCase().trim();
+          let isL = (jk === 'laki-laki' || jk === 'l' || jk === 'pria'); let isP = (jk === 'perempuan' || jk === 'p' || jk === 'wanita');
+          let pkh = (s.penerima_pkh || '').toLowerCase().trim() === 'ya'; let pip = (s.penerima_pip || '').toLowerCase().trim() === 'ya';
+
+          if(pkh) { if(isL) mapSosial[r].pkhL++; if(isP) mapSosial[r].pkhP++; mapSosial[r].pkhJ++; }
+          if(pip) { if(isL) mapSosial[r].pipL++; if(isP) mapSosial[r].pipP++; mapSosial[r].pipJ++; }
+      });
+
+      let tbSosial = ''; let noSos = 1;
+      rombels.forEach(r => {
+          tbSosial += `<tr><td class="py-2 text-center">${noSos++}</td><td class="py-2 font-medium">${r}</td>
+              <td class="py-2 text-center border-l">${mapSosial[r].pkhL}</td><td class="py-2 text-center">${mapSosial[r].pkhP}</td><td class="py-2 text-center font-bold text-blue-700 bg-blue-50/30">${mapSosial[r].pkhJ}</td>
+              <td class="py-2 text-center border-l">${mapSosial[r].pipL}</td><td class="py-2 text-center">${mapSosial[r].pipP}</td><td class="py-2 text-center font-bold text-emerald-700 bg-emerald-50/30">${mapSosial[r].pipJ}</td></tr>`;
+          totSos.pkhL += mapSosial[r].pkhL; totSos.pkhP += mapSosial[r].pkhP; totSos.pkhJ += mapSosial[r].pkhJ;
+          totSos.pipL += mapSosial[r].pipL; totSos.pipP += mapSosial[r].pipP; totSos.pipJ += mapSosial[r].pipJ;
+      });
+
+      tbSosial += `<tr class="bg-indigo-50/50 font-bold border-t"><td colspan="2" class="py-3 text-right">TOTAL KESELURUHAN</td>
+          <td class="text-center py-3 border-l">${totSos.pkhL}</td><td class="text-center py-3">${totSos.pkhP}</td><td class="text-center py-3 text-blue-700 text-lg">${totSos.pkhJ}</td>
+          <td class="text-center py-3 border-l">${totSos.pipL}</td><td class="text-center py-3">${totSos.pipP}</td><td class="text-center py-3 text-emerald-700 text-lg">${totSos.pipJ}</td></tr>`;
+      
+      document.getElementById('tabel-rekap-sosial').innerHTML = tbSosial;
+
+      // Grafik Sosial (Grouped Bar Chart)
+      if(mySosialChart) mySosialChart.destroy();
+      mySosialChart = new Chart(document.getElementById('sosialChart').getContext('2d'), {
+          type: 'bar',
+          data: {
+              labels: rombels,
+              datasets: [
+                  { label: 'PKH (L)', data: rombels.map(r => mapSosial[r].pkhL), backgroundColor: '#60a5fa' },
+                  { label: 'PKH (P)', data: rombels.map(r => mapSosial[r].pkhP), backgroundColor: '#3b82f6' },
+                  { label: 'PIP (L)', data: rombels.map(r => mapSosial[r].pipL), backgroundColor: '#34d399' },
+                  { label: 'PIP (P)', data: rombels.map(r => mapSosial[r].pipP), backgroundColor: '#10b981' }
+              ]
+          }, options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function renderChart(dataValues) {
+      if (typeof Chart === 'undefined') return; 
+      if (myChart) myChart.destroy();
+      myChart = new Chart(document.getElementById('mainChart').getContext('2d'), { type: 'bar', data: { labels: ['Siswa', 'Pegawai', 'Mutasi Masuk', 'Mutasi Keluar'], datasets: [{ label: 'Jumlah', data: dataValues, backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'], borderRadius: 8 }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+    }
+
+    function buildHTMLForm(schemaData, containerId, rowData = null) {
+      const container = document.getElementById(containerId); container.innerHTML = '';
+      if (rowData && rowData.id && containerId === 'dynamic-form') container.innerHTML += `<input type="hidden" name="id" value="${rowData.id}">`;
+      schemaData.forEach(group => {
+          let html = `<div class="bg-white p-6 rounded-xl border border-slate-200 mb-6 shadow-sm"><h4 class="text-lg font-bold border-b pb-3 mb-4 text-blue-700">${group.group}</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`; 
+          group.fields.forEach(f => {
+              const key = f.name.toLowerCase().replace(/\s+/g, '_'); const val = rowData && rowData[key] !== undefined ? rowData[key] : ''; const idAttr = f.id ? `id="${f.id}"` : ''; const roAttr = f.readonly ? 'readonly class="form-control bg-slate-100 text-slate-500 font-medium"' : 'class="form-control"'; const wrapClass = f.fullWidth ? "col-span-1 md:col-span-2" : "col-span-1"; const onInputEvent = key.includes('penghasilan') ? 'oninput="formatRupiah(this)"' : '';
+              html += `<div class="${wrapClass}"><label class="form-label font-semibold text-slate-700 text-sm">${f.name}</label>`;
+              if (f.type === 'select') { html += `<select name="${key}" ${idAttr} ${roAttr} class="form-control"><option value="">-- Pilih --</option>`; (f.options || (f.ref && refDataDropdown[f.ref] ? refDataDropdown[f.ref] : [])).forEach(opt => html += `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}</option>`); html += `</select>`; }
+              else if (f.type === 'datalist') { html += `<input list="${f.listId}" name="${key}" ${idAttr} ${roAttr} value="${val}" autocomplete="off" placeholder="Ketik nama..."><datalist id="${f.listId}"></datalist>`; }
+              else if (f.type === 'date') html += `<input type="date" name="${key}" ${idAttr} ${roAttr} value="${formatKeInputDate(val)}">`;
+              else html += `<input type="text" name="${key}" ${idAttr} ${roAttr} ${onInputEvent} value="${val}" autocomplete="off">`;
+              html += `</div>`;
+          });
+          container.innerHTML += html + `</div></div>`;
+      });
+    }
+
+    function loadSekolahForm() { google.script.run.withSuccessHandler(data => { buildHTMLForm(formSchemas['sekolah'], 'sekolah-form-container', data || {}); setLoading(false); }).getSchoolProfile(); }
+
+    function loadModuleData(module) {
+      currentModule = module; document.getElementById('filter-nama').value = ''; dataState.page = 1; dataState.selectedId = null;
+      const titleMap = { 'pegawai': 'Data Pegawai', 'siswa': 'Data Siswa', 'mutasi-masuk': 'Data Mutasi Masuk', 'mutasi-keluar': 'Data Mutasi Keluar' };
+      const titleEl = document.getElementById('list-title'); if(titleEl) titleEl.innerText = titleMap[module];
+      
+      const isImportable = (module === 'siswa' || module === 'pegawai');
+      
+      document.getElementById('btn-tambah').style.display = (module === 'mutasi-keluar') ? 'none' : 'flex';
+      document.getElementById('btn-mutasikan').style.display = (module === 'siswa') ? 'flex' : 'none';
+      document.getElementById('btn-kembali').style.display = (module === 'mutasi-keluar') ? 'flex' : 'none';
+      document.getElementById('btn-export').style.display = isImportable ? 'flex' : 'none';
+      document.getElementById('btn-import').style.display = isImportable ? 'flex' : 'none';
+      document.getElementById('divider-import').style.display = isImportable ? 'block' : 'none';
+      document.getElementById('btn-cetak').style.display = module.includes('mutasi') ? 'flex' : 'none';
+
+      refreshData(true);
+    }
+
+    function refreshData(showOverlay = false) {
+      dataState.selectedId = null; 
+      if (showOverlay) setLoading(true); else document.getElementById('table-body').innerHTML = '<tr><td colspan="15" class="text-center py-8 text-slate-500"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>Mensinkronkan pembaruan data...</td></tr>';
+      
+      const sheetName = currentModule === 'mutasi-keluar' ? 'MutasiKeluar' : (currentModule === 'mutasi-masuk' ? 'MutasiMasuk' : currentModule.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''));
+      
+      google.script.run.withSuccessHandler(data => {
+          dataState.raw = data || [];
+          if (currentModule === 'siswa') {
+            document.getElementById('filter-rombel').classList.remove('hidden');
+            let options = '<option value="">Semua Rombel</option>';
+            [...new Set(dataState.raw.map(r => r.rombel).filter(Boolean))].sort().forEach(r => options += `<option value="${r}">${r}</option>`);
+            document.getElementById('filter-rombel').innerHTML = options;
+          } else { document.getElementById('filter-rombel').classList.add('hidden'); }
+          applyFilters(); if (showOverlay) setLoading(false); 
+      }).getSheetData(sheetName);
+    }
+
+    function applyFilters() {
+      const q = document.getElementById('filter-nama').value.toLowerCase(); const rombelFilter = document.getElementById('filter-rombel').value;
+      dataState.filtered = dataState.raw.filter(row => { const matchName = (row.nama || '').toLowerCase().includes(q); const matchRombel = (currentModule !== 'siswa') || rombelFilter === '' || (row.rombel || '') === rombelFilter; return matchName && matchRombel; });
+      dataState.page = 1; dataState.selectedId = null; renderTable();
+    }
+
+    function renderTable() {
+      const head = document.getElementById('table-head'); const body = document.getElementById('table-body');
+      head.innerHTML = ''; body.innerHTML = '';
+      if (dataState.filtered.length === 0) { body.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-slate-400">Tidak ada data ditemukan.</td></tr>'; updatePaginationInfo(); return; }
+
+      let displayKeys = [];
+      if (currentModule === 'pegawai') displayKeys = ['nama', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'nip', 'jabatan'];
+      else if (currentModule === 'siswa') displayKeys = ['rombel', 'nama', 'jenis_kelamin', 'nisn', 'tempat_lahir', 'tanggal_lahir'];
+      else if (currentModule.includes('mutasi')) displayKeys = ['rombel', 'nama', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'nama_sekolah', 'tanggal_pindah'];
+      else displayKeys = Object.keys(dataState.filtered[0]).filter(k => k !== 'id').slice(0, 6);
+
+      head.innerHTML = `<th class="px-4 py-3 w-10 text-center text-sm font-semibold text-slate-600">Pilih</th>`;
+      displayKeys.forEach(k => head.innerHTML += `<th class="px-4 py-3 text-sm font-semibold text-slate-600 whitespace-nowrap">${k.toUpperCase().replace(/_/g,' ')}</th>`);
+
+      dataState.filtered.slice((dataState.page - 1) * dataState.size, dataState.size === 'all' ? dataState.filtered.length : Math.min(dataState.page * dataState.size, dataState.filtered.length)).forEach(row => {
+        let tr = `<tr onclick="selectRow('${row.id}')" id="row-${row.id}" class="cursor-pointer transition-colors hover:bg-slate-100 ${dataState.selectedId === row.id ? 'bg-blue-50' : ''}">`;
+        tr += `<td class="px-4 py-3 text-center"><input type="radio" name="rowSelect" value="${row.id}" ${dataState.selectedId === row.id ? 'checked' : ''} class="cursor-pointer form-check-input"></td>`;
+        displayKeys.forEach(k => { 
+            let val = row[k] || '-'; 
+            if((k.includes('tanggal') || k.includes('tgl') || k.includes('tmt')) && val !== '-') val = formatKeIndo(val); 
+            tr += `<td class="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">${val}</td>`; 
+        });
+        body.innerHTML += tr + '</tr>';
+      });
+      updatePaginationInfo();
+    }
+
+    function updatePaginationInfo() {
+      const total = dataState.filtered.length; if (total === 0) { document.getElementById('pagination-info').innerText = "Menampilkan 0-0 dari 0 data"; return; }
+      document.getElementById('pagination-info').innerText = `Menampilkan ${(dataState.page - 1) * dataState.size + 1}-${dataState.size === 'all' ? total : Math.min(dataState.page * dataState.size, total)} dari ${total} data`;
+    }
+
+    function changePageSize() { dataState.size = document.getElementById('page-size').value === 'all' ? 'all' : parseInt(document.getElementById('page-size').value); dataState.page = 1; renderTable(); }
+    function changePage(delta) { if (dataState.size === 'all') return; let newPage = dataState.page + delta; const maxPage = Math.ceil(dataState.filtered.length / dataState.size); if (newPage >= 1 && newPage <= maxPage) { dataState.page = newPage; renderTable(); } }
+
+    function selectRow(id) { dataState.selectedId = id; document.querySelectorAll('tbody tr').forEach(tr => tr.classList.remove('bg-blue-50')); const row = document.getElementById(`row-${id}`); if (row) { row.classList.add('bg-blue-50'); row.querySelector('input[type="radio"]').checked = true; } }
+
+    function openModalTambah() { 
+        document.getElementById('dynamic-form').dataset.action = '';
+        buildHTMLForm(formSchemas[currentModule], 'dynamic-form', null); 
+        document.getElementById('modalTitle').innerText = 'Tambah Data'; 
+        new bootstrap.Modal(document.getElementById('modalData')).show(); 
+    }
+
+    function editSelected() {
+      if (!dataState.selectedId) return Swal.fire('Perhatian', 'Pilih data dulu di tabel.', 'warning');
+      document.getElementById('dynamic-form').dataset.action = '';
+      buildHTMLForm(formSchemas[currentModule], 'dynamic-form', dataState.raw.find(r => r.id === dataState.selectedId)); 
+      document.getElementById('modalTitle').innerText = 'Edit Data'; 
+      new bootstrap.Modal(document.getElementById('modalData')).show();
+    }
+
+    function openMutasikan() {
+      if (!dataState.selectedId) return Swal.fire('Perhatian', 'Pilih siswa yang akan dimutasikan di tabel.', 'warning');
+      const dataSiswa = dataState.raw.find(r => r.id === dataState.selectedId);
+      document.getElementById('dynamic-form').dataset.action = 'mutasikan';
+      buildHTMLForm(formSchemas['form-mutasikan'], 'dynamic-form', null);
+      document.getElementById('modalTitle').innerText = 'Mutasikan Siswa: ' + (dataSiswa.nama || '-');
+      new bootstrap.Modal(document.getElementById('modalData')).show();
+    }
+
+    function deleteSelected() {
+      if (!dataState.selectedId) return Swal.fire('Perhatian', 'Pilih data dulu.', 'warning');
+      const sheetName = currentModule === 'mutasi-keluar' ? 'MutasiKeluar' : (currentModule === 'mutasi-masuk' ? 'MutasiMasuk' : currentModule.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''));
+      Swal.fire({ title: 'Hapus?', text: "Data hilang permanen!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Ya, Hapus' }).then((res) => {
+        if (res.isConfirmed) { Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } }); google.script.run.withSuccessHandler(r => { if (r.success) { Swal.fire({ title: 'Terhapus!', icon: 'success', timer: 1500, showConfirmButton: false }); refreshData(false); } else Swal.fire('Gagal', r.message, 'error'); }).deleteData(sheetName, dataState.selectedId); }
+      });
+    }
+
+    function kembalikanSiswaMutasi() {
+      if (!dataState.selectedId) return Swal.fire('Perhatian', 'Pilih data mutasi di tabel.', 'warning');
+      Swal.fire({ title: 'Tarik Data Siswa?', text: "Siswa ini akan ditarik kembali ke Data Siswa aktif (Batal Mutasi).", icon: 'question', showCancelButton: true, confirmButtonColor: '#10b981', confirmButtonText: 'Ya, Tarik Data' }).then((res) => {
+        if (res.isConfirmed) { 
+            Swal.fire({ title: 'Memproses Transfer...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } }); 
+            google.script.run.withSuccessHandler(r => { 
+                if(r.success) { 
+                    Swal.fire({ title: 'Berhasil!', text: r.message, icon: 'success', timer: 1500, showConfirmButton: false }); 
+                    refreshData(false); 
+                } else Swal.fire('Gagal', r.message, 'error'); 
+            }).kembalikanSiswaMutasi(dataState.selectedId); 
+        }
+      });
+    }
+
+    function cetakSelected() {
+      if (!dataState.selectedId) return Swal.fire('Perhatian', 'Pilih baris data di tabel terlebih dahulu.', 'warning');
+      const dataRow = dataState.raw.find(r => r.id === dataState.selectedId);
+      if (dataRow.link_surat && dataRow.link_surat !== "") window.open(dataRow.link_surat, '_blank'); else Swal.fire({ title: 'Informasi', text: 'Surat belum ada di data ini. Silakan klik tombol "Edit", lalu klik "Simpan" ulang.', icon: 'info' });
+    }
+
+    function exportToExcel() {
+      if (typeof XLSX === 'undefined') return Swal.fire('Error', 'Library Excel belum termuat, silakan muat ulang halaman.', 'error');
+      
+      const sheetName = currentModule === 'mutasi-keluar' ? 'MutasiKeluar' : (currentModule === 'mutasi-masuk' ? 'MutasiMasuk' : currentModule.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''));
+      
+      Swal.fire({ title: 'Menyiapkan Data Export...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+      
+      google.script.run.withSuccessHandler(data => {
+          if(!data || data.length === 0) {
+              return Swal.fire('Informasi', 'Tidak ada data untuk diexport.', 'info');
+          }
+          const workbook = XLSX.utils.book_new(); 
+          const worksheet = XLSX.utils.aoa_to_sheet(data); 
+          XLSX.utils.book_append_sheet(workbook, worksheet, "Data " + currentModule); 
+          XLSX.writeFile(workbook, `Data_${currentModule}_${new Date().toISOString().slice(0,10)}.xlsx`);
+          Swal.close();
+      }).getExportData(sheetName);
+    }
+
+    function importFromExcel(event) {
+      if (typeof XLSX === 'undefined') return Swal.fire('Error', 'Library Excel belum termuat.', 'error');
+      const file = event.target.files[0]; if (!file) return; event.target.value = ''; const reader = new FileReader();
+      reader.onload = async function(e) {
+          try {
+              const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+              const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {raw: false, defval: ''});
+              if(json.length === 0) return Swal.fire('Informasi', 'File Excel kosong', 'info');
+              
+              const schema = formSchemas[currentModule] || [];
+              let dtFields = [];
+              schema.forEach(g => g.fields.forEach(f => {
+                  if(f.type === 'date' || f.name.toLowerCase().includes('tanggal') || f.name.toLowerCase().includes('tgl') || f.name.toLowerCase().includes('tmt')) {
+                      dtFields.push(f.name.toLowerCase().replace(/\s+/g, '_'));
+                  }
+              }));
+
+              const importedData = json.map(row => {
+                  let obj = {};
+                  for(let key in row) {
+                      let cleanKey = key.toLowerCase().replace(/\s+/g, '_');
+                      let val = String(row[key]).trim();
+                      // PAKSA EXCEL JADI YYYY-MM-DD
+                      if(dtFields.includes(cleanKey)) val = normalizeDate(val); 
+                      obj[cleanKey] = val;
+                  }
+                  return obj;
+              });
+
+              if((await Swal.fire({ title: 'Konfirmasi Import Excel', text: `Ditemukan ${importedData.length} baris data. Lanjutkan?`, icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Mulai Import' })).isConfirmed) processImportSatuSatu(importedData);
+          } catch(err) { Swal.fire('Gagal', 'File Excel rusak atau format tidak didukung.', 'error'); }
+      }; reader.readAsArrayBuffer(file);
+    }
+
+    async function processImportSatuSatu(dataArray) {
+       let successCount = 0; let failCount = 0; 
+       const sheetName = currentModule === 'mutasi-keluar' ? 'MutasiKeluar' : (currentModule === 'mutasi-masuk' ? 'MutasiMasuk' : currentModule.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''));
+       
+       Swal.fire({ title: 'Sedang Mengimpor...', html: `Baris tersimpan: <b>0</b> / ${dataArray.length}`, allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+       for(let i=0; i<dataArray.length; i++) {
+          let rowData = dataArray[i]; rowData.id = ''; 
+          try { let res = await new Promise((res, rej) => { google.script.run.withSuccessHandler(res).withFailureHandler(rej).saveData(sheetName, rowData); }); if(res.success) successCount++; else failCount++; } catch(e) { failCount++; }
+          Swal.getHtmlContainer().querySelector('b').textContent = i + 1;
+       }
+       Swal.fire('Proses Selesai', `Data berhasil: ${successCount}<br>Data gagal: ${failCount}`, 'info'); refreshData(true);
+    }
+
+    function initForms() {
+      document.getElementById('form-sekolah').onsubmit = (e) => {
+        e.preventDefault(); Swal.fire({ title: 'Menyimpan Profil...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+        google.script.run.withSuccessHandler(r => { r.success ? Swal.fire('Berhasil', 'Profil disimpan', 'success') : Swal.fire('Gagal', r.message, 'error'); }).saveSchoolProfile(Object.fromEntries(new FormData(e.target)));
+      };
+      
+      document.getElementById('dynamic-form').onsubmit = (e) => {
+        e.preventDefault(); 
+        const rawFormData = Object.fromEntries(new FormData(e.target));
+        
+        // INTERCEPT JIKA MUTASI
+        if (e.target.dataset.action === 'mutasikan') {
+             Swal.fire({ title: 'Memproses Mutasi...', text: 'Sistem menyalin data dan membuat dokumen...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+             google.script.run.withSuccessHandler(r => {
+                 if (r.success) {
+                     Swal.fire('Berhasil', r.message, 'success');
+                     bootstrap.Modal.getInstance(document.getElementById('modalData')).hide();
+                     e.target.dataset.action = '';
+                     refreshData(false);
+                 } else Swal.fire('Gagal', r.message, 'error');
+             }).prosesMutasiKeluar(dataState.selectedId, rawFormData);
+             return; 
+        }
+
+        // Simpan Data Normal (Langsung kirim YYYY-MM-DD ke Sheet tanpa intervensi!)
+        const sheetName = currentModule === 'mutasi-keluar' ? 'MutasiKeluar' : (currentModule === 'mutasi-masuk' ? 'MutasiMasuk' : currentModule.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''));
+        Swal.fire({ title: 'Menyimpan Data...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+        
+        google.script.run.withSuccessHandler(r => {
+            if (r.success) { 
+                Swal.fire({ title: 'Berhasil', text: r.message, icon: 'success', timer: 1500, showConfirmButton: false }); 
+                bootstrap.Modal.getInstance(document.getElementById('modalData')).hide(); 
+                refreshData(false); 
+            } else Swal.fire('Gagal', r.message, 'error');
+        }).saveData(sheetName, rawFormData);
+      };
+    }
+    function setLoading(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
+  </script>
+</body>
+</html>
