@@ -1,0 +1,485 @@
+/**
+ * GAS WebApp BUILDER - School Information System
+ * Backend Logic for Google Apps Script
+ * KODE UTUH - FULL PRESERVATION
+ */
+
+const SS_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
+
+// ==========================================
+// KONFIGURASI CETAK DOKUMEN MUTASI (WAJIB DIISI)
+// ==========================================
+const TEMPLATE_MASUK_ID = "1NKkojF6DMBTU4OZGfLP5Tz_NFWjywW00GNbaczSxDZY"; 
+const TEMPLATE_KELUAR_ID = "1AdFxGHLsay7XJ0R2gFymvldYpXtkJ4Dv4g8w2e-gRMM";
+const FOLDER_CETAK_ID = "1qmCkBPbiOsXknGUsSR2x04VmpiA6xFSw";
+
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('🚀 SIS Setup')
+    .addItem('Jalankan Setup Awal (Create Sheets)', 'initialSetup')
+    .addItem('🔧 Berikan Izin Akses (Wajib Pertama Kali)', 'pancinganOtoritas')
+    .addToUi();
+}
+
+function doGet(e) {
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('SIS-EDU Apps')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function apiHandler(payload) {
+  const e = { postData: { contents: JSON.stringify(payload) } };
+  const response = doPost(e);
+  return response.getContent();
+}
+
+function initialSetup() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sekolahHeaders = ['ID', 'Nama Sekolah', 'NPSN', 'NSS', 'Status Sekolah', 'Akreditasi', 'Kurikulum', 'Alamat Lengkap', 'RT', 'Kelurahan', 'Kecamatan', 'Kota', 'Provinsi', 'Lintang', 'Bujur', 'Nomor Telepon', 'Email', 'Website', 'Nomor Rekening BOSP', 'Nomor Rekening BOSDA', 'Waktu Penyelenggaraan', 'Daya Listrik', 'Nomor PLN', 'Akses Internet', 'Kecepatan Internet', 'Nomor Internet', 'Nomor PDAM', 'Jumlah Toilet Siswa Pria', 'Jumlah Toilet Siswa Wanita', 'Jumlah Toilet Guru'];
+  const pegawaiHeaders = ['ID', 'Nama', 'NIK', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'Agama', 'Nama Ibu Kandung', 'Alamat', 'RT', 'Kelurahan', 'Kecamatan', 'Kode Pos', 'Status Kawin', 'NPWP', 'Nomor BPJS', 'Email', 'Nomor HP', 'Nama Suami Istri', 'NIP Pasangan', 'Pekerjaan Pasangan', 'NIP', 'NUPTK', 'Pangkat', 'Golongan', 'Jabatan', 'Jenis', 'Status', 'SK CPNS', 'Tgl CPNS', 'SK PNS PPPK', 'Tanggal PNS PPPK', 'Penanda Tangan SK', 'TMT Sekolah', 'Tahun Sertifikasi', 'Nomor Sertifikasi', 'Nomor Peserta', 'NRG', 'Jenjang', 'Jurusan', 'Program Studi', 'Fakultas', 'Nama Perguruan Tinggi', 'Gelar Depan', 'Gelar Belakang', 'Nomor Ijazah', 'Tahun Ijazah'];
+  const siswaHeaders = ['ID', 'Rombel', 'Nama', 'Jenis Kelamin', 'NISN', 'NIS', 'NIK Siswa', 'Nomor KK', 'Tempat Lahir', 'Tanggal Lahir', 'Agama', 'Berkebutuhan Khusus Siswa', 'Alamat Siswa', 'RT', 'Kelurahan', 'Kecamatan', 'Kode POS', 'Tinggal Bersama', 'Mode Transportasi', 'Nama Ayah', 'NIK Ayah', 'Tanggal Lahir Ayah', 'Pendidikan Ayah', 'Pekerjaan Ayah', 'Penghasilan Ayah', 'Berkebutuhan Khusus Ayah', 'Nama Ibu', 'NIK Ibu', 'Tanggal Lahir Ibu', 'Pendidikan Ibu', 'Pekerjaan Ibu', 'Penghasilan Ibu', 'Berkebutuhan Khusus Ibu', 'Nama Wali', 'NIK Wali', 'Tanggal Lahir Wali', 'Pendidikan Wali', 'Pekerjaan Wali', 'Penghasilan Wali', 'Lingkar Kepala', 'Tinggi Badan', 'Berat Badan', 'Anak Ke', 'Jumlah Saudara', 'Hobi', 'Cita Cita', 'Jarak Rumah Ke Sekolah', 'Waktu Tempuh', 'Penerima PKH', 'Nomor PKH', 'Penerima PIP', 'Tahun Terakhir Menerima PIP', 'Prestasi', 'Juara', 'Tingkat Prestasi'];
+  const mutasiMasukHeaders = ['ID', 'Rombel', 'Nama', 'NISN', 'Tempat Lahir', 'Tanggal Lahir', 'Jenis Kelamin', 'Nama Sekolah', 'NPSN', 'Alamat Sekolah', 'Kelurahan Sekolah', 'Kecamatan Sekolah', 'Kab Kota', 'Propinsi', 'Alasan Pindah', 'Tanggal Pindah', 'Nomor Surat', 'Link Surat'];
+  const mutasiKeluarHeaders = [...siswaHeaders, 'Nama Sekolah', 'NPSN', 'Alamat Sekolah', 'Kelurahan Sekolah', 'Kecamatan Sekolah', 'Kab Kota', 'Propinsi', 'Alasan Pindah', 'Tanggal Pindah', 'Nomor Surat', 'Link Surat'];
+
+  const sheetsNeeded = [
+    { name: 'Sekolah', headers: sekolahHeaders },
+    { name: 'Pegawai', headers: pegawaiHeaders },
+    { name: 'Siswa', headers: siswaHeaders },
+    { name: 'MutasiMasuk', headers: mutasiMasukHeaders },
+    { name: 'MutasiKeluar', headers: mutasiKeluarHeaders },
+    { name: 'Pengguna', headers: ['ID', 'Username', 'Password', 'Nama', 'Role'] },
+    { name: 'Tabel', headers: ['kd rombel', 'kd kelamin', 'kd agama', 'kd kawin', 'kd pekerjaan', 'kd pangkat', 'kd golongan', 'kd jabatan', 'kd jenis', 'kd status', 'kd berkebutuhan', 'kd tinggal', 'kd transportasi', 'kd pendidikan'] }
+  ];
+
+  sheetsNeeded.forEach(sh => {
+    let sheet = ss.getSheetByName(sh.name);
+    if (!sheet) {
+      sheet = ss.insertSheet(sh.name);
+      sheet.appendRow(sh.headers);
+    } else {
+      const existingHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn() || 1).getValues()[0];
+      if(existingHeaders.length < sh.headers.length) {
+        sheet.getRange(1, 1, 1, sh.headers.length).setValues([sh.headers]);
+      }
+    }
+    sheet.getRange(1, 1, 1, sh.headers.length).setFontWeight('bold').setBackground('#f3f4f6');
+  });
+
+  const userSheet = ss.getSheetByName('Pengguna');
+  if (userSheet.getLastRow() <= 1) {
+    userSheet.appendRow([Utilities.getUuid(), 'admin', 'admin123', 'Administrator', 'admin']);
+  }
+
+  const tabelSheet = ss.getSheetByName('Tabel');
+  if (tabelSheet.getLastRow() <= 1) {
+    tabelSheet.getRange(2, 3, 6, 1).setValues([['Islam'], ['Kristen'], ['Katolik'], ['Hindu'], ['Buddha'], ['Konghucu']]);
+  }
+}
+
+function doPost(e) {
+  const result = { success: false, message: 'Invalid Action' };
+  try {
+    const params = JSON.parse(e.postData.contents);
+    const action = params.action;
+    const data = params.data;
+
+    switch (action) {
+      case 'login':
+        result.data = loginHandle(data.username, data.password);
+        result.success = !!result.data;
+        if(!result.success) result.message = "Username atau Password salah.";
+        break;
+      // PERBAIKAN: Menambahkan fungsi ambil semua data dalam 1x request
+      case 'getAllData':
+        result.data = fetchAllData();
+        result.success = true;
+        break;
+      case 'getData':
+        result.data = getSheetData(data.sheetName);
+        result.success = true;
+        break;
+      case 'saveData':
+        const saveRes = saveData(data.sheetName, data.formData);
+        result.success = saveRes.success;
+        result.message = saveRes.message;
+        break;
+      case 'deleteData':
+        const delRes = deleteData(data.sheetName, data.id);
+        result.success = delRes.success;
+        result.message = delRes.message;
+        break;
+      case 'prosesMutasi':
+        const mutRes = prosesMutasiKeluar(data.idSiswa, data.formData);
+        result.success = mutRes.success;
+        result.message = mutRes.message;
+        break;
+      case 'tarikDataMutasi':
+        const tarikRes = tarikDataMutasi(data.idSiswa);
+        result.success = tarikRes.success;
+        result.message = tarikRes.message;
+        break;
+      case 'importData':
+        result.success = importDataCSV(data.sheetName, data.csvData);
+        result.message = result.success ? "Data berhasil diimpor" : "Gagal impor";
+        break;
+      case 'cetakSurat':
+        const cetakRes = cetakSuratMutasi(data.id, data.jenis);
+        result.success = cetakRes.success;
+        result.message = cetakRes.message;
+        result.url = cetakRes.url;
+        break;
+    }
+  } catch (err) {
+    result.message = err.toString();
+  }
+
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function loginHandle(username, password) {
+  const data = getSheetData('Pengguna');
+  const user = data.find(u => u.username === username && u.password === password);
+  return user ? user : null;
+}
+
+// FUNGSI BARU: Ambil semua data dengan 1 panggilan (Super Fast Loading)
+function fetchAllData() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheets = ['Tabel', 'Sekolah', 'Siswa', 'Pegawai', 'MutasiMasuk', 'MutasiKeluar', 'Pengguna'];
+  const result = {};
+  
+  sheets.forEach(sheetName => {
+    const sheet = ss.getSheetByName(sheetName);
+    if(sheet) {
+      const data = sheet.getDataRange().getDisplayValues();
+      if(data.length > 1) {
+        const headers = data.shift();
+        result[sheetName] = data.map(row => {
+          let obj = {};
+          headers.forEach((h, i) => obj[h.toLowerCase().replace(/\s+/g, '_')] = row[i]);
+          return obj;
+        });
+      } else {
+        result[sheetName] = [];
+      }
+    } else {
+      result[sheetName] = [];
+    }
+  });
+  return result;
+}
+
+function getSheetData(sheetName) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return [];
+  const data = sheet.getDataRange().getDisplayValues(); 
+  if (data.length <= 1) return [];
+  
+  const headers = data.shift();
+  return data.map(row => {
+    let obj = {};
+    headers.forEach((h, i) => obj[h.toLowerCase().replace(/\s+/g, '_')] = row[i]);
+    return obj;
+  });
+}
+
+function saveData(sheetName, formData) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName(sheetName);
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const dataRows = sheet.getDataRange().getDisplayValues();
+  
+  let id = formData.id;
+  let isUpdate = false;
+  let rowIdx = -1;
+
+  if (id) {
+    const idIdx = headers.findIndex(h => h.toLowerCase() === 'id');
+    for (let i = 1; i < dataRows.length; i++) {
+      if (dataRows[i][idIdx].toString() === id.toString()) {
+        rowIdx = i + 1;
+        isUpdate = true;
+        break;
+      }
+    }
+  } else {
+    id = Utilities.getUuid();
+    formData.id = id;
+  }
+
+  const newRow = headers.map((h, colIdx) => {
+    const key = h.toLowerCase().replace(/\s+/g, '_');
+    let val = formData[key];
+    
+    if (isUpdate && val === undefined) {
+      return dataRows[rowIdx - 1][colIdx]; 
+    }
+
+    if (val === undefined || val === null) val = "";
+    val = val.toString().trim();
+    
+    if (val === "0" || val === "-") return "'" + val; 
+    if (val.match(/^[0-9]+$/) && val.length > 5 && !val.startsWith("'")) val = "'" + val; 
+    
+    return val;
+  });
+
+  if (isUpdate) {
+    sheet.getRange(rowIdx, 1, 1, headers.length).setValues([newRow]);
+  } else {
+    sheet.appendRow(newRow);
+    rowIdx = sheet.getLastRow();
+  }
+
+  if (sheetName === 'Siswa' && sheet.getLastRow() > 1) {
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).sort([{column: 2, ascending: true}, {column: 3, ascending: true}]);
+  }
+
+  // ==========================================
+  // AUTO GENERATE SURAT MUTASI SAAT SIMPAN
+  // ==========================================
+  if (sheetName === 'MutasiMasuk' || sheetName === 'MutasiKeluar') {
+    try {
+      const module = sheetName === 'MutasiMasuk' ? 'mutasi-masuk' : 'mutasi-keluar';
+      const obj = {};
+      headers.forEach((h, i) => obj[h.toString().toLowerCase().replace(/\s+/g, '_')] = newRow[i]);
+      
+      const docResult = cetakDokumenMutasi(module, obj);
+      
+      if (docResult.success) {
+        const linkSuratColIdx = headers.findIndex(h => h.toString().toLowerCase().replace(/\s+/g, '_') === 'link_surat') + 1;
+        if (linkSuratColIdx > 0) {
+          sheet.getRange(rowIdx, linkSuratColIdx).setValue(docResult.url);
+        }
+      } else {
+        console.error("Gagal Auto Generate Surat: " + docResult.message);
+      }
+    } catch(err) {
+      console.error(err);
+    }
+  }
+
+  return { success: true, message: "Data berhasil disimpan!" };
+}
+
+function deleteData(sheetName, id) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName(sheetName);
+  const data = sheet.getDataRange().getValues();
+  const idIdx = data[0].findIndex(h => h.toLowerCase() === 'id');
+  
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][idIdx].toString() === id.toString()) {
+      sheet.deleteRow(i + 1);
+      return { success: true, message: "Terhapus!" };
+    }
+  }
+  return { success: false, message: "ID tidak ditemukan" };
+}
+
+function prosesMutasiKeluar(idSiswa, dataMutasi) {
+  const siswa = getSheetData('Siswa').find(s => s.id === idSiswa);
+  if (!siswa) return { success: false, message: "Siswa tidak ditemukan" };
+  
+  // Gabungkan data Siswa asli dengan data Mutasi form tanpa merusak ID
+  const combined = { ...siswa, ...dataMutasi };
+  const res = saveData('MutasiKeluar', combined);
+  
+  if (res.success) {
+    deleteData('Siswa', idSiswa);
+    return { success: true, message: "Berhasil memutasikan siswa & Dokumen disiapkan." };
+  }
+  return res;
+}
+
+function tarikDataMutasi(idSiswa) {
+  const mutasi = getSheetData('MutasiKeluar').find(s => s.id === idSiswa);
+  if (!mutasi) return { success: false, message: "Data mutasi tidak ditemukan" };
+  
+  const res = saveData('Siswa', mutasi);
+  if (res.success) {
+    deleteData('MutasiKeluar', idSiswa);
+    return { success: true, message: "Data berhasil ditarik kembali ke Siswa Aktif" };
+  }
+  return res;
+}
+
+function importDataCSV(sheetName, csvArray) {
+  try {
+    const ss = SpreadsheetApp.openById(SS_ID);
+    const sheet = ss.getSheetByName(sheetName);
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => h.toLowerCase().replace(/\s+/g, '_'));
+    
+    const newRows = [];
+    csvArray.forEach(rowObj => {
+      let rowData = headers.map(key => {
+        let val = rowObj[key] || rowObj[key.toUpperCase()] || rowObj[key.replace(/_/g, ' ')] || "";
+        val = val.toString().trim();
+        
+        if (key === 'id' && val === "") return Utilities.getUuid();
+        if (val === "0" || val === "-") return "'" + val; 
+        if (val.match(/^[0-9]+$/) && val.length > 5 && !val.startsWith("'")) val = "'" + val;
+        return val;
+      });
+      newRows.push(rowData);
+    });
+
+    if (newRows.length > 0) {
+      sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, headers.length).setValues(newRows);
+      if (sheetName === 'Siswa') sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).sort([{column: 2, ascending: true}, {column: 3, ascending: true}]);
+    }
+    return true;
+  } catch(e) { return false; }
+}
+
+// ==========================================
+// FUNGSI MAIL MERGE / CETAK DOKUMEN
+// ==========================================
+function cetakDokumenMutasi(module, rowData) {
+  try {
+    const templateId = module === 'mutasi-masuk' ? TEMPLATE_MASUK_ID : TEMPLATE_KELUAR_ID;
+    
+    if(!templateId || templateId.includes("MASUKKAN_ID")) return { success: false, message: "ID Template belum disetting di Code.gs" };
+    if(!FOLDER_CETAK_ID || FOLDER_CETAK_ID.includes("MASUKKAN_ID")) return { success: false, message: "ID Folder belum disetting di Code.gs" };
+
+    const folder = DriveApp.getFolderById(FOLDER_CETAK_ID);
+    const templateDoc = DriveApp.getFileById(templateId);
+    
+    // Perbaikan pengambilan nama agar bersih dari petik (jika ada)
+    let namaSiswa = rowData['nama'] || rowData['nama_siswa'] || 'TanpaNama';
+    if(typeof namaSiswa === 'string') namaSiswa = namaSiswa.replace(/^'/, '');
+    
+    let nisnSiswa = rowData['nisn'] || '000'; 
+    if(typeof nisnSiswa === 'string') nisnSiswa = nisnSiswa.replace(/^'/, '');
+
+    const jenisMutasi = module === 'mutasi-masuk' ? 'mutasi_masuk' : 'mutasi_keluar';
+    const docName = `${namaSiswa.replace(/[^a-zA-Z0-9\s]/g, "")}_${nisnSiswa}_${jenisMutasi}`;
+    
+    // Hapus file lama jika namanya sama (Overwrite)
+    const existingFiles = folder.getFilesByName(docName);
+    while (existingFiles.hasNext()) { existingFiles.next().setTrashed(true); }
+    
+    const newFile = templateDoc.makeCopy(docName, folder);
+    
+    // Pengamanan Otoritas: Mencegah Error Berhenti di Tengah Jalan
+    try {
+      newFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (shareError) {
+      console.warn("Izin setSharing dibatasi, namun file berhasil dibuat.", shareError);
+    }
+
+    const doc = DocumentApp.openById(newFile.getId());
+    const body = doc.getBody();
+    
+    for (let key in rowData) {
+      const placeholder = `<${key}>`;
+      let nilaiKolom = rowData[key] || '';
+      
+      // PERBAIKAN: Hilangkan tanda petik (') di depan data agar dokumen bersih!
+      if (typeof nilaiKolom === 'string' && nilaiKolom.startsWith("'")) {
+          nilaiKolom = nilaiKolom.substring(1);
+      }
+      
+      if (key.includes('tanggal') || key.includes('tgl') || key.includes('tmt')) {
+         nilaiKolom = formatTanggalIndo(nilaiKolom);
+      }
+      
+      try { body.replaceText(placeholder, String(nilaiKolom)); } catch(e){}
+    }
+    
+    doc.saveAndClose();
+    return { success: true, url: newFile.getUrl() };
+  } catch(e) {
+    return { success: false, message: e.toString() };
+  }
+}
+
+// Fungsi Pemicu Cetak Manual dari Tombol WebApp
+function cetakSuratMutasi(id, jenis) {
+  const sheetName = jenis === 'masuk' ? 'MutasiMasuk' : 'MutasiKeluar';
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName(sheetName);
+  const dataRows = sheet.getDataRange().getDisplayValues();
+  const headers = dataRows[0];
+
+  let rowIdx = -1;
+  let rowData = null;
+  const idIdx = headers.findIndex(h => h.toString().toLowerCase() === 'id');
+  
+  for(let i=1; i<dataRows.length; i++) {
+    if(dataRows[i][idIdx].toString() === id.toString()) {
+      rowIdx = i + 1;
+      rowData = dataRows[i];
+      break;
+    }
+  }
+  if(!rowData) return { success: false, message: "Data mutasi tidak ditemukan pada sheet." };
+
+  const obj = {};
+  headers.forEach((h, i) => obj[h.toString().toLowerCase().replace(/\s+/g, '_')] = rowData[i]);
+
+  const module = jenis === 'masuk' ? 'mutasi-masuk' : 'mutasi-keluar';
+  const result = cetakDokumenMutasi(module, obj);
+
+  if (result.success) {
+     const linkSuratColIdx = headers.findIndex(h => h.toString().toLowerCase().replace(/\s+/g, '_') === 'link_surat') + 1;
+     if(linkSuratColIdx > 0) sheet.getRange(rowIdx, linkSuratColIdx).setValue(result.url);
+     return { success: true, message: "Surat berhasil dibuat manual.", url: result.url };
+  } else {
+     return { success: false, message: result.message };
+  }
+}
+
+function formatTanggalIndo(dateStr) {
+  if(!dateStr) return '';
+  const parts = dateStr.split('-');
+  if(parts.length === 3) {
+    const bulanIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const d = parseInt(parts[2], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const y = parts[0];
+    if (d && !isNaN(m) && y) return `${d} ${bulanIndo[m]} ${y}`;
+  }
+  return dateStr;
+}
+
+// ==========================================
+// FUNGSI PANCINGAN OTORITAS YANG SUDAH KEBAL ERROR
+// ==========================================
+/**
+ * PENTING: Anda sekarang BISA menjalankan fungsi ini dari dalam editor Google Apps Script!
+ * Jika dijalankan, Google akan langsung meminta Review Permissions.
+ */
+function pancinganOtoritas() {
+  try {
+    // 1. Pancing izin Document dan Drive
+    const doc = DocumentApp.create("Test_Pancingan_Otoritas");
+    const file = DriveApp.getFileById(doc.getId());
+    
+    // 2. Pancing izin Sharing link
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    // 3. Langsung masukkan file uji coba ini ke kotak sampah agar tidak mengganggu
+    file.setTrashed(true);
+    
+    // 4. Catat di log untuk tanda sukses
+    Logger.log('✅ OTORITAS SUKSES! Sistem kini memiliki izin penuh untuk membuat Dokumen dan Link Surat secara otomatis. Silakan kembali ke WebApp dan coba simpan data.');
+    
+    // 5. Coba tampilkan popup jika fungsi ini dipanggil dari Spreadsheet (opsional)
+    try {
+      const ui = SpreadsheetApp.getUi();
+      ui.alert('✅ Otoritas Berhasil!', 'Sistem kini memiliki izin penuh. Silakan kembali ke WebApp.', ui.ButtonSet.OK);
+    } catch (uiErr) {
+      // Baris ini akan mengabaikan error 'Cannot call getUi() from this context' 
+      // yang terjadi saat Anda menekan tombol RUN dari editor Apps Script.
+    }
+    
+  } catch (e) {
+    Logger.log('❌ GAGAL: Error Otoritas: ' + e.toString());
+    try {
+      SpreadsheetApp.getUi().alert('❌ Gagal', 'Error: ' + e.toString(), SpreadsheetApp.getUi().ButtonSet.OK);
+    } catch (uiErr) {}
+  }
+}
