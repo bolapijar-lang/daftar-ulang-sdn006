@@ -1,0 +1,181 @@
+/**
+ * GAS WebApp Builder - Backend Versi 3 (Full & Optimized)
+ * Fitur: Dynamic Header Mapping, Auto-ID, Initial Setup, Concurrency Protection, Eksternal Support (CORS)
+ */
+
+const SPREADSHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
+const FOLDER_ID = "1NzVvNNZMBaFpnRynmfW_Zfi1hx3L09Y6nrGA3DmZdxGu6OHHqAyfV6h0WyzNPBU_UsWMnX8z"; // Folder ID Drive
+const TABEL_SHEET = "Tabel";
+const SISWA_SHEET = "Siswa";
+
+/**
+ * FUNGSI SETUP AWAL
+ */
+function initialSetup() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  let siswa = ss.getSheetByName(SISWA_SHEET);
+  if (!siswa) {
+    siswa = ss.insertSheet(SISWA_SHEET);
+  }
+  const headersSiswa = [
+    "ID", "Rombel", "Nama", "Jenis Kelamin", "NISN", "NIS", "NIK Siswa", "Nomor KK", "Tempat Lahir", 
+    "Tanggal Lahir", "Agama", "Berkebutuhan Khusus Siswa", "Alamat Siswa", "RT", "Kelurahan", "Kecamatan", 
+    "Kode POS", "Tinggal Bersama", "Mode Transportasi", "Nama Ayah", "NIK Ayah", "Tanggal Lahir Ayah", 
+    "Pendidikan Ayah", "Pekerjaan Ayah", "Penghasilan Ayah", "Berkebutuhan Khusus Ayah", "Nama Ibu", 
+    "NIK Ibu", "Tanggal Lahir Ibu", "Pendidikan Ibu", "Pekerjaan Ibu", "Penghasilan Ibu", 
+    "Berkebutuhan Khusus Ibu", "Nama Wali", "NIK Wali", "Tanggal Lahir Wali", "Pendidikan Wali", 
+    "Pekerjaan Wali", "Penghasilan Wali", "Lingkar Kepala", "Tinggi Badan", "Berat Badan", "Anak Ke", 
+    "Jumlah Saudara", "Hobi", "Cita Cita", "Jarak Rumah Ke Sekolah", "Waktu Tempuh", "Penerima PKH", 
+    "Nomor PKH", "Penerima PIP", "Tahun Terakhir Menerima PIP", "Prestasi", "Juara", "Tingkat Prestasi", 
+    "Link Berkas", "Timestamp"
+  ];
+  siswa.getRange(1, 1, 1, headersSiswa.length).setValues([headersSiswa]).setFontWeight("bold");
+  siswa.setFrozenRows(1);
+
+  let tabel = ss.getSheetByName(TABEL_SHEET);
+  if (!tabel) {
+    tabel = ss.insertSheet(TABEL_SHEET);
+  }
+  const headersTabel = [
+    "kd rombel", "kd kelamin", "kd agama", "kd berkebutuhan", "kd pendidikan", 
+    "kd pekerjaan", "kd tinggal", "kd transportasi"
+  ];
+  tabel.getRange(1, 1, 1, headersTabel.length).setValues([headersTabel]).setFontWeight("bold");
+  
+  return "Setup Berhasil!";
+}
+
+/**
+ * MENGAMBIL DATA DROPDOWN
+ */
+function getDropdownData() {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(TABEL_SHEET);
+    if (!sheet) return {};
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const result = {};
+    headers.forEach((header, colIdx) => {
+      const list = [];
+      for (let row = 1; row < data.length; row++) {
+        if (data[row][colIdx]) list.push(data[row][colIdx]);
+      }
+      result[header] = list;
+    });
+    return result;
+  } catch (e) { return {}; }
+}
+
+/**
+ * FUNGSI GET (Dipanggil saat akses URL WebApp atau dari Fetch External)
+ */
+function doGet(e) {
+  // Jika ada parameter action=getDropdownData (dipanggil dari luar GAS)
+  if (e && e.parameter.action === 'getDropdownData') {
+    const data = getDropdownData();
+    return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  // Jika diakses normal
+  return HtmlService.createTemplateFromFile('index')
+    .evaluate()
+    .setTitle('Daftar Ulang Digital - SDN 006')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+/**
+ * FUNGSI POST (Dipanggil saat Submit Form dari luar GAS via Fetch)
+ */
+function doPost(e) {
+  try {
+    const payload = JSON.parse(e.postData.contents);
+    const resultString = processSubmission(payload);
+    return ContentService.createTextOutput(resultString).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ "result": "error", "error": err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * PROSES SIMPAN DATA UTAMA (Concurrency Safe)
+ */
+function processSubmission(payload) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(30000); 
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(SISWA_SHEET);
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const newRow = new Array(headers.length).fill("");
+
+    // 1. Upload Berkas
+    let fileUrls = [];
+    if (payload.files && payload.files.length > 0) {
+      const folder = DriveApp.getFolderById(FOLDER_ID);
+      payload.files.forEach((f, i) => {
+        const extension = f.name.split('.').pop();
+        const base64Data = f.base64.split(',')[1];
+        const safeNama = payload.nama.replace(/[^a-zA-Z0-9]/g, "_");
+        const blob = Utilities.newBlob(Utilities.base64Decode(base64Data), f.type, `${safeNama}_${i + 1}.${extension}`);
+        const newFile = folder.createFile(blob);
+        fileUrls.push(newFile.getUrl());
+      });
+    }
+
+    // 2. Generate ID
+    const lastRow = sheet.getLastRow();
+    const idColIdx = headers.indexOf("ID");
+    let nextId = "REG001";
+    if (lastRow > 1 && idColIdx !== -1) {
+      const lastIdValue = sheet.getRange(lastRow, idColIdx + 1).getValue().toString();
+      const num = parseInt(lastIdValue.replace("REG", "")) || 0;
+      nextId = "REG" + (num + 1).toString().padStart(3, '0');
+    }
+
+    // 3. Mapping
+    const map = {
+      "ID": nextId, "Rombel": payload.rombel, "Nama": formatEYD(payload.nama),
+      "Jenis Kelamin": payload.jk, "NISN": "'" + payload.nisn, "NIS": "'" + payload.nis,
+      "NIK Siswa": "'" + payload.nik, "Nomor KK": "'" + payload.no_kk,
+      "Tempat Lahir": formatEYD(payload.tmpt_lahir), "Tanggal Lahir": payload.tgl_lahir,
+      "Agama": payload.agama, "Berkebutuhan Khusus Siswa": payload.abk_siswa,
+      "Alamat Siswa": formatEYD(payload.alamat), "RT": payload.rt,
+      "Kelurahan": formatEYD(payload.kelurahan), "Kecamatan": formatEYD(payload.kecamatan),
+      "Kode POS": payload.kodepos, "Tinggal Bersama": payload.tinggal,
+      "Mode Transportasi": payload.transpor, "Nama Ayah": formatEYD(payload.nama_ayah),
+      "NIK Ayah": "'" + payload.nik_ayah, "Tanggal Lahir Ayah": payload.tgl_lahir_ayah,
+      "Pendidikan Ayah": payload.pdk_ayah, "Pekerjaan Ayah": payload.krj_ayah,
+      "Penghasilan Ayah": payload.penghasilan_ayah, "Berkebutuhan Khusus Ayah": payload.abk_ayah,
+      "Nama Ibu": formatEYD(payload.nama_ibu), "NIK Ibu": "'" + payload.nik_ibu,
+      "Tanggal Lahir Ibu": payload.tgl_lahir_ibu, "Pendidikan Ibu": payload.pdk_ibu,
+      "Pekerjaan Ibu": payload.krj_ibu, "Penghasilan Ibu": payload.penghasilan_ibu,
+      "Berkebutuhan Khusus Ibu": payload.abk_ibu, "Nama Wali": formatEYD(payload.nama_wali),
+      "NIK Wali": "'" + payload.nik_wali, "Tanggal Lahir Wali": payload.tgl_lahir_wali,
+      "Pendidikan Wali": payload.pdk_wali, "Pekerjaan Wali": payload.krj_wali,
+      "Penghasilan Wali": payload.penghasilan_wali, "Lingkar Kepala": payload.lk,
+      "Tinggi Badan": payload.tb, "Berat Badan": payload.bb, "Anak Ke": payload.anak_ke,
+      "Jumlah Saudara": payload.jml_saudara, "Hobi": formatEYD(payload.hobi),
+      "Cita Cita": formatEYD(payload.cita_cita), "Jarak Rumah Ke Sekolah": formatEYD(payload.jarak),
+      "Waktu Tempuh": formatEYD(payload.waktu), "Penerima PKH": payload.pkh_status,
+      "Nomor PKH": payload.no_pkh, "Penerima PIP": payload.pip_status,
+      "Tahun Terakhir Menerima PIP": payload.thn_pip, "Prestasi": payload.prestasi,
+      "Juara": payload.juara, "Tingkat Prestasi": payload.tingkat_prestasi,
+      "Link Berkas": fileUrls.join(" | "), "Timestamp": new Date()
+    };
+
+    headers.forEach((h, i) => { if (map[h] !== undefined) newRow[i] = map[h]; });
+    sheet.appendRow(newRow);
+
+    return JSON.stringify({ "result": "success", "id": nextId });
+  } catch (err) {
+    return JSON.stringify({ "result": "error", "error": err.toString() });
+  } finally { lock.releaseLock(); }
+}
+
+function formatEYD(text) {
+  if (!text) return "";
+  return text.toString().toLowerCase().trim().replace(/(^|\s)\S/g, l => l.toUpperCase());
+}
