@@ -39,13 +39,9 @@ function initialSetup() {
   const sekolahHeaders = ['ID', 'Nama Sekolah', 'NPSN', 'NSS', 'Status Sekolah', 'Akreditasi', 'Kurikulum', 'Alamat Lengkap', 'RT', 'Kelurahan', 'Kecamatan', 'Kota', 'Provinsi', 'Lintang', 'Bujur', 'Nomor Telepon', 'Email', 'Website', 'Nomor Rekening BOSP', 'Nomor Rekening BOSDA', 'Waktu Penyelenggaraan', 'Daya Listrik', 'Nomor PLN', 'Akses Internet', 'Kecepatan Internet', 'Nomor Internet', 'Nomor PDAM', 'Jumlah Toilet Siswa Pria', 'Jumlah Toilet Siswa Wanita', 'Jumlah Toilet Guru'];
   const pegawaiHeaders = ['ID', 'Nama', 'NIK', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'Agama', 'Nama Ibu Kandung', 'Alamat', 'RT', 'Kelurahan', 'Kecamatan', 'Kode Pos', 'Status Kawin', 'NPWP', 'Nomor BPJS', 'Email', 'Nomor HP', 'Nama Suami Istri', 'NIP Pasangan', 'Pekerjaan Pasangan', 'NIP', 'NUPTK', 'Pangkat', 'Golongan', 'Jabatan', 'Jenis', 'Status', 'SK CPNS', 'Tgl CPNS', 'SK PNS PPPK', 'Tanggal PNS PPPK', 'Penanda Tangan SK', 'TMT Sekolah', 'Tahun Sertifikasi', 'Nomor Sertifikasi', 'Nomor Peserta', 'NRG', 'Jenjang', 'Jurusan', 'Program Studi', 'Fakultas', 'Nama Perguruan Tinggi', 'Gelar Depan', 'Gelar Belakang', 'Nomor Ijazah', 'Tahun Ijazah'];
   
-  // PERBAIKAN: Memisahkan headers base agar kolom MutasiKeluar lama tidak ikut bergeser saat ada penambahan di paling ujung Siswa
   const siswaHeadersBase = ['ID', 'Rombel', 'Nama', 'Jenis Kelamin', 'NISN', 'NIS', 'NIK Siswa', 'Nomor KK', 'Tempat Lahir', 'Tanggal Lahir', 'Agama', 'Berkebutuhan Khusus Siswa', 'Alamat Siswa', 'RT', 'Kelurahan', 'Kecamatan', 'Kode POS', 'Tinggal Bersama', 'Mode Transportasi', 'Nama Ayah', 'NIK Ayah', 'Tanggal Lahir Ayah', 'Pendidikan Ayah', 'Pekerjaan Ayah', 'Penghasilan Ayah', 'Berkebutuhan Khusus Ayah', 'Nama Ibu', 'NIK Ibu', 'Tanggal Lahir Ibu', 'Pendidikan Ibu', 'Pekerjaan Ibu', 'Penghasilan Ibu', 'Berkebutuhan Khusus Ibu', 'Nama Wali', 'NIK Wali', 'Tanggal Lahir Wali', 'Pendidikan Wali', 'Pekerjaan Wali', 'Penghasilan Wali', 'Lingkar Kepala', 'Tinggi Badan', 'Berat Badan', 'Anak Ke', 'Jumlah Saudara', 'Hobi', 'Cita Cita', 'Jarak Rumah Ke Sekolah', 'Waktu Tempuh', 'Penerima PKH', 'Nomor PKH', 'Penerima PIP', 'Tahun Terakhir Menerima PIP', 'Prestasi', 'Juara', 'Tingkat Prestasi'];
   
-  // PERBAIKAN: Nomor HP ditambahkan paling kanan agar konsisten & aman
   const siswaHeaders = [...siswaHeadersBase, 'Nomor HP'];
-  
-  // PERBAIKAN: Timestamp ditambahkan di paling kanan untuk Mutasi Masuk & Keluar
   const mutasiMasukHeaders = ['ID', 'Rombel', 'Nama', 'NISN', 'Tempat Lahir', 'Tanggal Lahir', 'Jenis Kelamin', 'Nama Sekolah', 'NPSN', 'Alamat Sekolah', 'Kelurahan Sekolah', 'Kecamatan Sekolah', 'Kab Kota', 'Propinsi', 'Alasan Pindah', 'Tanggal Pindah', 'Nomor Surat', 'Link Surat', 'Timestamp'];
   const mutasiKeluarHeaders = [...siswaHeadersBase, 'Nama Sekolah', 'NPSN', 'Alamat Sekolah', 'Kelurahan Sekolah', 'Kecamatan Sekolah', 'Kab Kota', 'Propinsi', 'Alasan Pindah', 'Tanggal Pindah', 'Nomor Surat', 'Link Surat', 'Nomor HP', 'Timestamp'];
 
@@ -56,7 +52,9 @@ function initialSetup() {
     { name: 'MutasiMasuk', headers: mutasiMasukHeaders },
     { name: 'MutasiKeluar', headers: mutasiKeluarHeaders },
     { name: 'Pengguna', headers: ['ID', 'Username', 'Password', 'Nama', 'Role'] },
-    { name: 'Tabel', headers: ['kd rombel', 'kd kelamin', 'kd agama', 'kd kawin', 'kd pekerjaan', 'kd pangkat', 'kd golongan', 'kd jabatan', 'kd jenis', 'kd status', 'kd berkebutuhan', 'kd tinggal', 'kd transportasi', 'kd pendidikan'] }
+    { name: 'Tabel', headers: ['kd rombel', 'kd kelamin', 'kd agama', 'kd kawin', 'kd pekerjaan', 'kd pangkat', 'kd golongan', 'kd jabatan', 'kd jenis', 'kd status', 'kd berkebutuhan', 'kd tinggal', 'kd transportasi', 'kd pendidikan'] },
+    // PERBAIKAN: Penambahan Sheet Log Aktivitas
+    { name: 'Log Aktivitas', headers: ['Timestamp', 'Pengguna', 'Aktivitas', 'Detail'] }
   ];
 
   sheetsNeeded.forEach(sh => {
@@ -84,6 +82,18 @@ function initialSetup() {
   }
 }
 
+// PERBAIKAN: Fungsi Ringan Pencatat Aktivitas di Latar Belakang
+function catatLog(user, aktivitas, detail) {
+  try {
+    const ss = SpreadsheetApp.openById(SS_ID);
+    let sheet = ss.getSheetByName('Log Aktivitas');
+    if (sheet) {
+      const ts = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
+      sheet.appendRow([ts, user || 'Sistem', aktivitas, detail]);
+    }
+  } catch(e) {}
+}
+
 function doPost(e) {
   const result = { success: false, message: 'Invalid Action' };
   try {
@@ -106,27 +116,27 @@ function doPost(e) {
         result.success = true;
         break;
       case 'saveData':
-        const saveRes = saveData(data.sheetName, data.formData);
+        const saveRes = saveData(data.sheetName, data.formData, data.user);
         result.success = saveRes.success;
         result.message = saveRes.message;
         break;
       case 'deleteData':
-        const delRes = deleteData(data.sheetName, data.id);
+        const delRes = deleteData(data.sheetName, data.id, data.user);
         result.success = delRes.success;
         result.message = delRes.message;
         break;
       case 'prosesMutasi':
-        const mutRes = prosesMutasiKeluar(data.idSiswa, data.formData);
+        const mutRes = prosesMutasiKeluar(data.idSiswa, data.formData, data.user);
         result.success = mutRes.success;
         result.message = mutRes.message;
         break;
       case 'tarikDataMutasi':
-        const tarikRes = tarikDataMutasi(data.idSiswa);
+        const tarikRes = tarikDataMutasi(data.idSiswa, data.user);
         result.success = tarikRes.success;
         result.message = tarikRes.message;
         break;
       case 'importData':
-        result.success = importDataCSV(data.sheetName, data.csvData);
+        result.success = importDataCSV(data.sheetName, data.csvData, data.user);
         result.message = result.success ? "Data berhasil diimpor" : "Gagal impor";
         break;
       case 'cetakSurat':
@@ -190,7 +200,7 @@ function getSheetData(sheetName) {
   });
 }
 
-function saveData(sheetName, formData) {
+function saveData(sheetName, formData, user) {
   const ss = SpreadsheetApp.openById(SS_ID);
   const sheet = ss.getSheetByName(sheetName);
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
@@ -214,7 +224,6 @@ function saveData(sheetName, formData) {
     formData.id = id;
   }
 
-  // PERBAIKAN: Inject Timestamp otomatis ke dalam form mutasi sebelum memetakannya ke sheet
   if (sheetName === 'MutasiMasuk' || sheetName === 'MutasiKeluar') {
      formData['timestamp'] = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
   }
@@ -247,6 +256,11 @@ function saveData(sheetName, formData) {
     sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).sort([{column: 2, ascending: true}, {column: 3, ascending: true}]);
   }
 
+  // PERBAIKAN: Merekam Log setiap aksi simpan
+  let detailInfo = formData.nama || formData.nama_sekolah || formData.username || id;
+  let actionName = isUpdate ? 'Memperbarui' : 'Menambah';
+  catatLog(user, `${actionName} Data ${sheetName}`, `Data: ${detailInfo}`);
+
   // ==========================================
   // AUTO GENERATE SURAT MUTASI SAAT SIMPAN
   // ==========================================
@@ -274,7 +288,7 @@ function saveData(sheetName, formData) {
   return { success: true, message: "Data berhasil disimpan!" };
 }
 
-function deleteData(sheetName, id) {
+function deleteData(sheetName, id, user) {
   const ss = SpreadsheetApp.openById(SS_ID);
   const sheet = ss.getSheetByName(sheetName);
   const data = sheet.getDataRange().getValues();
@@ -282,41 +296,51 @@ function deleteData(sheetName, id) {
   
   for (let i = 1; i < data.length; i++) {
     if (data[i][idIdx].toString() === id.toString()) {
+      
+      // Ambil detail nama untuk mempermudah identifikasi log
+      const namaIdx = data[0].findIndex(h => h.toLowerCase() === 'nama');
+      let detail = namaIdx > -1 ? data[i][namaIdx] : id;
+
       sheet.deleteRow(i + 1);
+      
+      // PERBAIKAN: Merekam Log Penghapusan
+      catatLog(user, `Menghapus Data ${sheetName}`, `Identitas Terhapus: ${detail}`);
+      
       return { success: true, message: "Terhapus!" };
     }
   }
   return { success: false, message: "ID tidak ditemukan" };
 }
 
-function prosesMutasiKeluar(idSiswa, dataMutasi) {
+function prosesMutasiKeluar(idSiswa, dataMutasi, user) {
   const siswa = getSheetData('Siswa').find(s => s.id === idSiswa);
   if (!siswa) return { success: false, message: "Siswa tidak ditemukan" };
   
-  // Gabungkan data Siswa asli dengan data Mutasi form tanpa merusak ID
   const combined = { ...siswa, ...dataMutasi };
-  const res = saveData('MutasiKeluar', combined);
+  const res = saveData('MutasiKeluar', combined, user);
   
   if (res.success) {
-    deleteData('Siswa', idSiswa);
+    deleteData('Siswa', idSiswa, user);
+    catatLog(user, `Proses Mutasi Keluar`, `Siswa: ${siswa.nama}`);
     return { success: true, message: "Berhasil memutasikan siswa & Dokumen disiapkan." };
   }
   return res;
 }
 
-function tarikDataMutasi(idSiswa) {
+function tarikDataMutasi(idSiswa, user) {
   const mutasi = getSheetData('MutasiKeluar').find(s => s.id === idSiswa);
   if (!mutasi) return { success: false, message: "Data mutasi tidak ditemukan" };
   
-  const res = saveData('Siswa', mutasi);
+  const res = saveData('Siswa', mutasi, user);
   if (res.success) {
-    deleteData('MutasiKeluar', idSiswa);
+    deleteData('MutasiKeluar', idSiswa, user);
+    catatLog(user, `Tarik Batal Mutasi`, `Siswa: ${mutasi.nama}`);
     return { success: true, message: "Data berhasil ditarik kembali ke Siswa Aktif" };
   }
   return res;
 }
 
-function importDataCSV(sheetName, csvArray) {
+function importDataCSV(sheetName, csvArray, user) {
   try {
     const ss = SpreadsheetApp.openById(SS_ID);
     const sheet = ss.getSheetByName(sheetName);
@@ -339,6 +363,9 @@ function importDataCSV(sheetName, csvArray) {
     if (newRows.length > 0) {
       sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, headers.length).setValues(newRows);
       if (sheetName === 'Siswa') sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).sort([{column: 2, ascending: true}, {column: 3, ascending: true}]);
+      
+      // PERBAIKAN: Merekam Log Import Excel
+      catatLog(user, `Import Excel ke ${sheetName}`, `Sebanyak ${newRows.length} baris data`);
     }
     return true;
   } catch(e) { return false; }
@@ -357,7 +384,6 @@ function cetakDokumenMutasi(module, rowData) {
     const folder = DriveApp.getFolderById(FOLDER_CETAK_ID);
     const templateDoc = DriveApp.getFileById(templateId);
     
-    // Perbaikan pengambilan nama agar bersih dari petik (jika ada)
     let namaSiswa = rowData['nama'] || rowData['nama_siswa'] || 'TanpaNama';
     if(typeof namaSiswa === 'string') namaSiswa = namaSiswa.replace(/^'/, '');
     
@@ -367,13 +393,11 @@ function cetakDokumenMutasi(module, rowData) {
     const jenisMutasi = module === 'mutasi-masuk' ? 'mutasi_masuk' : 'mutasi_keluar';
     const docName = `${namaSiswa.replace(/[^a-zA-Z0-9\s]/g, "")}_${nisnSiswa}_${jenisMutasi}`;
     
-    // Hapus file lama jika namanya sama (Overwrite)
     const existingFiles = folder.getFilesByName(docName);
     while (existingFiles.hasNext()) { existingFiles.next().setTrashed(true); }
     
     const newFile = templateDoc.makeCopy(docName, folder);
     
-    // Pengamanan Otoritas: Mencegah Error Berhenti di Tengah Jalan
     try {
       newFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     } catch (shareError) {
@@ -387,7 +411,6 @@ function cetakDokumenMutasi(module, rowData) {
       const placeholder = `<${key}>`;
       let nilaiKolom = rowData[key] || '';
       
-      // PERBAIKAN: Hilangkan tanda petik (') di depan data agar dokumen bersih!
       if (typeof nilaiKolom === 'string' && nilaiKolom.startsWith("'")) {
           nilaiKolom = nilaiKolom.substring(1);
       }
@@ -406,7 +429,6 @@ function cetakDokumenMutasi(module, rowData) {
   }
 }
 
-// Fungsi Pemicu Cetak Manual dari Tombol WebApp
 function cetakSuratMutasi(id, jenis) {
   const sheetName = jenis === 'masuk' ? 'MutasiMasuk' : 'MutasiKeluar';
   const ss = SpreadsheetApp.openById(SS_ID);
@@ -455,37 +477,21 @@ function formatTanggalIndo(dateStr) {
   return dateStr;
 }
 
-// ==========================================
-// FUNGSI PANCINGAN OTORITAS YANG SUDAH KEBAL ERROR
-// ==========================================
 /**
  * PENTING: Anda sekarang BISA menjalankan fungsi ini dari dalam editor Google Apps Script!
  * Jika dijalankan, Google akan langsung meminta Review Permissions.
  */
 function pancinganOtoritas() {
   try {
-    // 1. Pancing izin Document dan Drive
     const doc = DocumentApp.create("Test_Pancingan_Otoritas");
     const file = DriveApp.getFileById(doc.getId());
-    
-    // 2. Pancing izin Sharing link
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    
-    // 3. Langsung masukkan file uji coba ini ke kotak sampah agar tidak mengganggu
     file.setTrashed(true);
-    
-    // 4. Catat di log untuk tanda sukses
     Logger.log('✅ OTORITAS SUKSES! Sistem kini memiliki izin penuh untuk membuat Dokumen dan Link Surat secara otomatis. Silakan kembali ke WebApp dan coba simpan data.');
-    
-    // 5. Coba tampilkan popup jika fungsi ini dipanggil dari Spreadsheet (opsional)
     try {
       const ui = SpreadsheetApp.getUi();
       ui.alert('✅ Otoritas Berhasil!', 'Sistem kini memiliki izin penuh. Silakan kembali ke WebApp.', ui.ButtonSet.OK);
-    } catch (uiErr) {
-      // Baris ini akan mengabaikan error 'Cannot call getUi() from this context' 
-      // yang terjadi saat Anda menekan tombol RUN dari editor Apps Script.
-    }
-    
+    } catch (uiErr) {}
   } catch (e) {
     Logger.log('❌ GAGAL: Error Otoritas: ' + e.toString());
     try {

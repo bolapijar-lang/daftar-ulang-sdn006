@@ -121,6 +121,7 @@
                     <i class="fas fa-sign-out-alt w-6 text-slate-400 group-hover:text-rose-400 transition"></i> <span class="font-medium">Mutasi Keluar</span>
                 </button>
                 
+                <!-- PERBAIKAN: Menu ini benar-benar disembunyikan kuat untuk User -->
                 <div id="adminMenu" class="hidden">
                     <div class="text-xs uppercase text-slate-500 font-bold px-4 pt-4 pb-2 tracking-wider">Sistem</div>
                     <button onclick="changeView('pengaturan')" class="nav-link w-full flex items-center px-4 py-3 rounded-xl transition hover:bg-slate-800 hover:text-white group" data-view="pengaturan">
@@ -330,10 +331,8 @@
                                     <option value="50">50</option>
                                     <option value="all">Semua</option>
                                 </select>
-                                <!-- ELEMEN INI YANG TERHAPUS SEBELUMNYA -->
                                 <span class="ml-4 font-medium" id="pageInfo">Menampilkan 0-0 dari 0 data</span>
                             </div>
-                            <!-- PERBAIKAN PAGINATION UI -->
                             <div class="flex items-center space-x-1" id="paginationControls"></div>
                         </div>
                     </div>
@@ -343,7 +342,7 @@
         </main>
     </div>
 
-    <!-- PERBAIKAN ANIMASI MODAL: Class animasi ditiadakan agar lebih snappy/instan -->
+    <!-- Modal Form -->
     <div id="formModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center hidden p-4">
         <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]" id="modalContent">
             <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-2xl">
@@ -397,7 +396,6 @@
             Siswa: {
                 groups: {
                     "Identitas": ['rombel', 'nama', 'jenis_kelamin', 'nisn', 'nis', 'nik_siswa', 'nomor_kk', 'tempat_lahir', 'tanggal_lahir', 'agama', 'berkebutuhan_khusus_siswa'],
-                    // PERBAIKAN: Menambahkan 'nomor_hp' di dalam form Lokasi & Kontak
                     "Lokasi & Kontak": ['alamat_siswa', 'rt', 'kelurahan', 'kecamatan', 'kode_pos', 'tinggal_bersama', 'mode_transportasi', 'jarak_rumah_ke_sekolah', 'waktu_tempuh', 'nomor_hp'],
                     "Orang Tua": ['nama_ayah', 'nik_ayah', 'tanggal_lahir_ayah', 'pendidikan_ayah', 'pekerjaan_ayah', 'penghasilan_ayah', 'berkebutuhan_khusus_ayah', 'nama_ibu', 'nik_ibu', 'tanggal_lahir_ibu', 'pendidikan_ibu', 'pekerjaan_ibu', 'penghasilan_ibu', 'berkebutuhan_khusus_ibu'],
                     "Wali": ['nama_wali', 'nik_wali', 'tanggal_lahir_wali', 'pendidikan_wali', 'pekerjaan_wali', 'penghasilan_wali'],
@@ -473,7 +471,13 @@
             document.getElementById('userName').innerText = currentUser.nama;
             document.getElementById('userRole').innerText = currentUser.role;
             document.getElementById('userInitial').innerText = currentUser.nama[0].toUpperCase();
-            if(currentUser.role === 'admin') document.getElementById('adminMenu').classList.remove('hidden');
+            
+            // PERBAIKAN: Menampilkan Pengaturan Akun murni HANYA JIKA role === admin
+            if(currentUser.role === 'admin') {
+                document.getElementById('adminMenu').classList.remove('hidden');
+            } else {
+                document.getElementById('adminMenu').classList.add('hidden');
+            }
             
             showLoader(true, "Mengunduh Database Sekolah...");
             await fetchReferenceData(); // Tunggu data sampai tuntas sebelum merender UI
@@ -496,6 +500,9 @@
         }
 
         async function apiCall(action, data = {}) {
+            // PERBAIKAN: Menyisipkan informasi pengguna ke payload (untuk fitur Log Aktivitas di backend)
+            if (currentUser && !data.user) data.user = currentUser.nama; 
+            
             return new Promise((resolve, reject) => {
                 if (typeof google !== 'undefined' && google.script) {
                     google.script.run.withSuccessHandler(res => resolve(JSON.parse(res))).withFailureHandler(err => reject(err)).apiHandler({ action, data });
@@ -507,7 +514,6 @@
             });
         }
 
-        // PERBAIKAN: Fetch super cepat dalam 1 detik mengambil semua sheet!
         async function fetchReferenceData() {
             try {
                 const res = await apiCall('getAllData');
@@ -532,7 +538,6 @@
                 activeLink.classList.remove('text-slate-400'); 
             }
             
-            // PERBAIKAN: Mapping Title agar dinamis di semua menu
             const viewTitles = {
                 dashboard: 'Dashboard',
                 sekolah: 'Profil Sekolah',
@@ -560,7 +565,6 @@
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-ml-64'); }
         
-        // PERBAIKAN: Memastikan data utuh yang diperbarui
         async function refreshData() { 
             const icon = document.getElementById('refreshIcon');
             if(icon) icon.classList.add('fa-spin');
@@ -770,8 +774,16 @@
 
             if (view === 'pegawai' || view === 'siswa') {
                 tb.innerHTML += `<button onclick="openFormModal()" class="bg-blue-600 hover:bg-blue-700 text-white ${btnClass}"><i class="fas fa-plus mr-2"></i> Tambah Data</button>`;
-                tb.innerHTML += `<button onclick="downloadExcel()" class="bg-emerald-500 hover:bg-emerald-600 text-white ${btnClass}"><i class="fas fa-file-excel mr-2"></i> Ekspor Excel</button>`;
-                tb.innerHTML += `<button onclick="document.getElementById('excelFileInput').click()" class="bg-amber-500 hover:bg-amber-600 text-white ${btnClass}"><i class="fas fa-upload mr-2"></i> Impor Excel</button>`;
+                
+                // PERBAIKAN: Batasan Role untuk Export dan Import Excel
+                if (currentUser && currentUser.role === 'admin') {
+                    tb.innerHTML += `<button onclick="downloadExcel()" class="bg-emerald-500 hover:bg-emerald-600 text-white ${btnClass}"><i class="fas fa-file-excel mr-2"></i> Ekspor Excel</button>`;
+                    tb.innerHTML += `<button onclick="document.getElementById('excelFileInput').click()" class="bg-amber-500 hover:bg-amber-600 text-white ${btnClass}"><i class="fas fa-upload mr-2"></i> Impor Excel</button>`;
+                } else {
+                    tb.innerHTML += `<button class="bg-slate-300 text-slate-500 cursor-not-allowed ${btnClass}" title="Akses Ditolak: Hanya Admin"><i class="fas fa-ban mr-2"></i> Ekspor Excel</button>`;
+                    tb.innerHTML += `<button class="bg-slate-300 text-slate-500 cursor-not-allowed ${btnClass}" title="Akses Ditolak: Hanya Admin"><i class="fas fa-ban mr-2"></i> Impor Excel</button>`;
+                }
+                
             } else if (view === 'mutasiMasuk') {
                 tb.innerHTML += `<button onclick="openFormModal()" class="bg-blue-600 hover:bg-blue-700 text-white ${btnClass}"><i class="fas fa-plus mr-2"></i> Tambah Mutasi</button>`;
             } else if (view === 'pengaturan') {
@@ -785,7 +797,6 @@
             const map = { pegawai:'Pegawai', siswa:'Siswa', mutasiMasuk:'MutasiMasuk', mutasiKeluar:'MutasiKeluar', pengaturan:'Pengguna' };
             activeSheet = map[view];
             
-            // PERBAIKAN: Jika force refresh, ambil ulang keseluruhan cache
             if(force) await fetchReferenceData();
             
             rawData = allSheetsData[activeSheet] || []; 
@@ -872,7 +883,13 @@
                     }
                 }
                 
-                btnHtml += `<button onclick="confirmDelete('${item.id}')" class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 hover:bg-rose-600 hover:text-white transition flex items-center justify-center" title="Hapus Permanen"><i class="fas fa-trash"></i></button></div>`;
+                // PERBAIKAN: Batasan Role untuk tombol Hapus Permanen
+                if (currentUser && currentUser.role === 'admin') {
+                    btnHtml += `<button onclick="confirmDelete('${item.id}')" class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 hover:bg-rose-600 hover:text-white transition flex items-center justify-center" title="Hapus Permanen"><i class="fas fa-trash"></i></button></div>`;
+                } else {
+                    btnHtml += `<button class="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 cursor-not-allowed transition flex items-center justify-center" title="Akses Ditolak: Hanya Admin"><i class="fas fa-ban"></i></button></div>`;
+                }
+                
                 tr += `<td class="px-4 py-3 border-l border-slate-100">${btnHtml}</td></tr>`;
                 body.innerHTML += tr;
             });
@@ -906,7 +923,6 @@
             });
         }
 
-        // PERBAIKAN PAGINASI: Menampilkan format ringkas [ Prev ] [ Page X of Y ] [ Next ]
         function renderPagination() {
             const c = document.getElementById('paginationControls'); 
             c.innerHTML = '';
@@ -971,7 +987,6 @@
                      input = `<input type="text" id="field_${k}" value="${v}" onkeyup="formatCurrency(this)" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition text-sm text-slate-700 shadow-sm text-right" placeholder="0">`;
                 } else {
                     let type = (k.includes('tanggal') || k.includes('tgl') || k.includes('tmt_sekolah')) ? 'date' : 'text'; 
-                    // PERBAIKAN: Jika data diawali dengan tanda petik ('), hapus petiknya agar tidak terlihat di form
                     let displayVal = v;
                     if (typeof displayVal === 'string' && displayVal.startsWith("'")) displayVal = displayVal.substring(1);
 
@@ -1033,7 +1048,6 @@
             showLoader(true, "Menyimpan & Membuat Dokumen..."); 
             const res = await apiCall('saveData', { sheetName: activeSheet, formData: fd }); 
             
-            // PERBAIKAN: Selalu sinkronkan cache setelah menyimpan, lalu tutup form
             await fetchReferenceData();
             showLoader(false);
             
@@ -1059,7 +1073,6 @@
             });
         }
 
-        // PERBAIKAN: Formulir Mutasi Siswa kini LENGKAP sesuai format Mutasi Keluar
         function mutasikanSiswa(id, namaSiswa) { 
             Swal.fire({ 
                 title: 'Mutasikan Siswa', 
@@ -1140,7 +1153,6 @@
                     showLoader(true, "Memproses Mutasi & Membuat Dokumen..."); 
                     const res = await apiCall('prosesMutasi', { idSiswa: id, formData: r.value }); 
                     
-                    // Sinkronkan data di lokal agar otomatis masuk menu Mutasi
                     await fetchReferenceData();
                     
                     showLoader(false); 
