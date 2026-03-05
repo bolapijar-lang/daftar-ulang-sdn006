@@ -1,82 +1,47 @@
+/**
+ * PENDATAAN US V2.1 - SDN 006 SUNGAI PINANG (BOOST EDITION)
+ * Fitur: Zero-Delay Status Injection, Dynamic Header Mapping, Hybrid Config
+ */
+
 // ========== KONFIG ==========
 const SPREADSHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
 const FOLDER_ID = "1DMNybPr9lAjj8S5KIc74a4iDjJ50uehZQLa1Xmt1f-neAuvqtcJyUoahappcgHrNobo3J3LF";
-const SHEET_NAME = "Respon"; 
+const SHEET_NAME_RESPON = "Respon"; 
+const SHEET_NAME_TABEL = "Tabel";
 
+/**
+ * Akses Internal Google Apps Script (Uji Deploy)
+ * BOOST: Mengambil data config sebelum halaman dirender
+ */
+function doGet(e) {
+  const config = fetchConfigData(); // Ambil data dulu
+  const template = HtmlService.createTemplateFromFile('Index');
+  template.serverConfig = JSON.stringify(config); // Suntikkan ke template
+  
+  return template.evaluate()
+    .setTitle("Pendataan US - SDN 006 Sungai Pinang")
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/**
+ * Endpoint Hybrid (Mendukung HTML di GAS & Luar GAS)
+ */
 function doPost(e) {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(30000); 
 
-    const data = JSON.parse(e.postData.contents);
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sh = ss.getSheetByName(SHEET_NAME);
+    const contents = JSON.parse(e.postData.contents);
+    const action = contents.action || "submit";
 
-    if (!sh) throw new Error("Sheet '" + SHEET_NAME + "' tidak ditemukan.");
-
-    let fileUrls = [];
-
-    // 1. PROSES UPLOAD & OVERWRITE FILE
-    if (data.files && data.files.length > 0) {
-      const folder = DriveApp.getFolderById(FOLDER_ID);
-      
-      data.files.forEach((f, i) => {
-        const safeName = data.nama.replace(/[^a-zA-Z0-9]/g, "_");
-        const baseName = `${safeName}_${i + 1}`; // Contoh: ADI_1
-        const fileName = `${baseName}.${f.ext}`;
-        
-        // --- LOGIKA PENGHAPUSAN FILE LAMA (OVERWRITE) ---
-        // Mencari file yang namanya diawali dengan baseName (mengabaikan ekstensi)
-        const existingFiles = folder.searchFiles("title contains '" + baseName + "'");
-        while (existingFiles.hasNext()) {
-          const oldFile = existingFiles.next();
-          // Pastikan nama file benar-benar sama sebelum ekstensi (menghindari ADI_11 ikut terhapus)
-          const oldFileNameNoExt = oldFile.getName().substring(0, oldFile.getName().lastIndexOf('.'));
-          if (oldFileNameNoExt === baseName) {
-            oldFile.setTrashed(true); // Memindahkan file lama ke sampah
-          }
-        }
-        // ------------------------------------------------
-        
-        const blob = Utilities.newBlob(Utilities.base64Decode(f.data), f.type, fileName);
-        const createdFile = folder.createFile(blob);
-        fileUrls.push(createdFile.getUrl()); 
-      });
+    if (action === "getConfig") {
+      const config = fetchConfigData();
+      return ContentService.createTextOutput(JSON.stringify(config))
+        .setMimeType(ContentService.MimeType.JSON);
     }
 
-    const fileLinks = fileUrls.join(", ");
-
-    // 2. SIMPAN DATA KE SHEET
-    sh.appendRow([
-      new Date(),
-      data.kelas,
-      "'" + data.nisn.toString().trim(),
-      "'" + data.nis.toString().trim(),
-      data.nama.trim(),
-      data.tempat_lahir.trim(),
-      data.tanggal_lahir,
-      data.jenis_kelamin,
-      data.agama,
-      data.alamat.trim(),
-      data.kecamatan.trim(),
-      "'" + data.hp.toString().trim(),
-      data.nama_ayah.trim(),
-      data.pekerjaan_ayah,
-      data.pendidikan_ayah,
-      data.penghasilan_ayah,
-      data.nama_ibu.trim(),
-      data.pekerjaan_ibu,
-      data.pendidikan_ibu,
-      data.penghasilan_ibu,
-      data.hobi,
-      data.cita,
-      data.transport,
-      data.jarak,
-      fileLinks            
-    ]);
-
-    return ContentService.createTextOutput(JSON.stringify({ "status": "success" }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return processSubmission(contents);
 
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": err.toString() }))
@@ -84,4 +49,123 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/**
+ * 1. LOGIKA AMBIL DATA DARI SHEET TABEL (Dropdown & Saklar)
+ */
+function fetchConfigData() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sh = ss.getSheetByName(SHEET_NAME_TABEL);
+  if (!sh) return { status_buka: 0, options: {} };
+
+  const data = sh.getDataRange().getValues();
+  const headers = data[0];
+  
+  const statusBuka = data[1][0] == 1 ? 1 : 0;
+  const config = {
+    status_buka: statusBuka,
+    options: {}
+  };
+
+  for (let j = 1; j < headers.length; j++) {
+    const key = headers[j].toLowerCase().replace(/\s/g, '_');
+    const options = data.slice(1).map(row => row[j]).filter(val => val !== "");
+    config.options[key] = options;
+  }
+
+  return config;
+}
+
+/**
+ * 2. PROSES SIMPAN DATA (DYNAMIC HEADER MAPPING)
+ */
+function processSubmission(data) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sh = ss.getSheetByName(SHEET_NAME_RESPON);
+  if (!sh) throw new Error("Sheet Respon tidak ditemukan.");
+
+  const folder = DriveApp.getFolderById(FOLDER_ID);
+  let fileUrls = [];
+
+  // --- PRESERVASI LOGIKA V1 ---
+  if (data.files && data.files.length > 0) {
+    data.files.forEach((f, i) => {
+      const safeName = data.nama.replace(/[^a-zA-Z0-9]/g, "_");
+      const baseName = `${safeName}_${i + 1}`;
+      const fileName = `${baseName}.${f.ext}`;
+      
+      const existingFiles = folder.searchFiles("title contains '" + baseName + "'");
+      while (existingFiles.hasNext()) {
+        const oldFile = existingFiles.next();
+        const oldFileNameNoExt = oldFile.getName().substring(0, oldFile.getName().lastIndexOf('.'));
+        if (oldFileNameNoExt === baseName) {
+          oldFile.setTrashed(true);
+        }
+      }
+      
+      const blob = Utilities.newBlob(Utilities.base64Decode(f.data), f.type, fileName);
+      const createdFile = folder.createFile(blob);
+      fileUrls.push(createdFile.getUrl()); 
+    });
+  }
+  const fileLinks = fileUrls.join(", ");
+
+  const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  const newRow = headers.map(header => {
+    const h = header.toLowerCase().trim();
+    if (h.includes("timestamp")) return new Date();
+    if (h.includes("kelas")) return data.kelas;
+    if (h.includes("nisn")) return "'" + data.nisn.toString().trim();
+    if (h.includes("nis") && !h.includes("nisn")) return "'" + data.nis.toString().trim();
+    if (h.includes("nama lengkap") || h === "nama") return data.nama.trim();
+    if (h.includes("tempat lahir")) return data.tempat_lahir.trim();
+    if (h.includes("tanggal lahir")) return data.tanggal_lahir;
+    if (h.includes("jenis kelamin") || h.includes("kelamin")) return data.jenis_kelamin;
+    if (h.includes("agama")) return data.agama;
+    if (h.includes("alamat")) return data.alamat.trim();
+    if (h.includes("kecamatan")) return data.kecamatan.trim();
+    if (h.includes("hp") || h.includes("whatsapp")) return "'" + data.hp.toString().trim();
+    if (h.includes("nama ayah")) return data.nama_ayah.trim();
+    if (h.includes("pekerjaan ayah")) return data.pekerjaan_ayah;
+    if (h.includes("pendidikan ayah")) return data.pendidikan_ayah;
+    if (h.includes("penghasilan ayah") || h.includes("gaji ayah")) return data.penghasilan_ayah;
+    if (h.includes("nama ibu")) return data.nama_ibu.trim();
+    if (h.includes("pekerjaan ibu")) return data.pekerjaan_ibu;
+    if (h.includes("pendidikan ibu")) return data.pendidikan_ibu;
+    if (h.includes("penghasilan ibu") || h.includes("gaji ibu")) return data.penghasilan_ibu;
+    if (h.includes("hobi")) return data.hobi;
+    if (h.includes("cita")) return data.cita;
+    if (h.includes("transport")) return data.transport;
+    if (h.includes("jarak")) return data.jarak;
+    if (h.includes("berkas") || h.includes("link") || h.includes("foto")) return fileLinks;
+    return "";
+  });
+
+  sh.appendRow(newRow);
+  return ContentService.createTextOutput(JSON.stringify({ "status": "success" }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * 3. INITIAL SETUP
+ */
+function initialSetup() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  let shRespon = ss.getSheetByName(SHEET_NAME_RESPON);
+  if (!shRespon) {
+    shRespon = ss.insertSheet(SHEET_NAME_RESPON);
+    const headers = ["Timestamp", "Kelas", "NISN", "NIS", "Nama Lengkap", "Tempat Lahir", "Tanggal Lahir", "Jenis Kelamin", "Agama", "Alamat Lengkap", "Kecamatan", "Nomor WhatsApp", "Nama Ayah", "Pekerjaan Ayah", "Pendidikan Ayah", "Penghasilan Ayah", "Nama Ibu", "Pekerjaan Ibu", "Pendidikan Ibu", "Penghasilan Ibu", "Hobi", "Cita-cita", "Transportasi", "Jarak", "Link Berkas"];
+    shRespon.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight("bold").setBackground("#dbeafe");
+  }
+
+  let shTabel = ss.getSheetByName(SHEET_NAME_TABEL);
+  if (!shTabel) {
+    shTabel = ss.insertSheet(SHEET_NAME_TABEL);
+    const headers = ["kd form", "kd kelas", "kd kelamin", "kd agama", "kd pekerjaan", "kd pendidikan", "kd gaji", "kd hobi", "kd cita", "kd transportasi", "kd jarak"];
+    shTabel.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight("bold").setBackground("#fef2f2");
+    shTabel.getRange(2, 1).setValue(1); 
+  }
+  Browser.msgBox("Setup Berhasil!");
 }
