@@ -38,9 +38,16 @@ function initialSetup() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sekolahHeaders = ['ID', 'Nama Sekolah', 'NPSN', 'NSS', 'Status Sekolah', 'Akreditasi', 'Kurikulum', 'Alamat Lengkap', 'RT', 'Kelurahan', 'Kecamatan', 'Kota', 'Provinsi', 'Lintang', 'Bujur', 'Nomor Telepon', 'Email', 'Website', 'Nomor Rekening BOSP', 'Nomor Rekening BOSDA', 'Waktu Penyelenggaraan', 'Daya Listrik', 'Nomor PLN', 'Akses Internet', 'Kecepatan Internet', 'Nomor Internet', 'Nomor PDAM', 'Jumlah Toilet Siswa Pria', 'Jumlah Toilet Siswa Wanita', 'Jumlah Toilet Guru'];
   const pegawaiHeaders = ['ID', 'Nama', 'NIK', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'Agama', 'Nama Ibu Kandung', 'Alamat', 'RT', 'Kelurahan', 'Kecamatan', 'Kode Pos', 'Status Kawin', 'NPWP', 'Nomor BPJS', 'Email', 'Nomor HP', 'Nama Suami Istri', 'NIP Pasangan', 'Pekerjaan Pasangan', 'NIP', 'NUPTK', 'Pangkat', 'Golongan', 'Jabatan', 'Jenis', 'Status', 'SK CPNS', 'Tgl CPNS', 'SK PNS PPPK', 'Tanggal PNS PPPK', 'Penanda Tangan SK', 'TMT Sekolah', 'Tahun Sertifikasi', 'Nomor Sertifikasi', 'Nomor Peserta', 'NRG', 'Jenjang', 'Jurusan', 'Program Studi', 'Fakultas', 'Nama Perguruan Tinggi', 'Gelar Depan', 'Gelar Belakang', 'Nomor Ijazah', 'Tahun Ijazah'];
-  const siswaHeaders = ['ID', 'Rombel', 'Nama', 'Jenis Kelamin', 'NISN', 'NIS', 'NIK Siswa', 'Nomor KK', 'Tempat Lahir', 'Tanggal Lahir', 'Agama', 'Berkebutuhan Khusus Siswa', 'Alamat Siswa', 'RT', 'Kelurahan', 'Kecamatan', 'Kode POS', 'Tinggal Bersama', 'Mode Transportasi', 'Nama Ayah', 'NIK Ayah', 'Tanggal Lahir Ayah', 'Pendidikan Ayah', 'Pekerjaan Ayah', 'Penghasilan Ayah', 'Berkebutuhan Khusus Ayah', 'Nama Ibu', 'NIK Ibu', 'Tanggal Lahir Ibu', 'Pendidikan Ibu', 'Pekerjaan Ibu', 'Penghasilan Ibu', 'Berkebutuhan Khusus Ibu', 'Nama Wali', 'NIK Wali', 'Tanggal Lahir Wali', 'Pendidikan Wali', 'Pekerjaan Wali', 'Penghasilan Wali', 'Lingkar Kepala', 'Tinggi Badan', 'Berat Badan', 'Anak Ke', 'Jumlah Saudara', 'Hobi', 'Cita Cita', 'Jarak Rumah Ke Sekolah', 'Waktu Tempuh', 'Penerima PKH', 'Nomor PKH', 'Penerima PIP', 'Tahun Terakhir Menerima PIP', 'Prestasi', 'Juara', 'Tingkat Prestasi'];
-  const mutasiMasukHeaders = ['ID', 'Rombel', 'Nama', 'NISN', 'Tempat Lahir', 'Tanggal Lahir', 'Jenis Kelamin', 'Nama Sekolah', 'NPSN', 'Alamat Sekolah', 'Kelurahan Sekolah', 'Kecamatan Sekolah', 'Kab Kota', 'Propinsi', 'Alasan Pindah', 'Tanggal Pindah', 'Nomor Surat', 'Link Surat'];
-  const mutasiKeluarHeaders = [...siswaHeaders, 'Nama Sekolah', 'NPSN', 'Alamat Sekolah', 'Kelurahan Sekolah', 'Kecamatan Sekolah', 'Kab Kota', 'Propinsi', 'Alasan Pindah', 'Tanggal Pindah', 'Nomor Surat', 'Link Surat'];
+  
+  // PERBAIKAN: Memisahkan headers base agar kolom MutasiKeluar lama tidak ikut bergeser saat ada penambahan di paling ujung Siswa
+  const siswaHeadersBase = ['ID', 'Rombel', 'Nama', 'Jenis Kelamin', 'NISN', 'NIS', 'NIK Siswa', 'Nomor KK', 'Tempat Lahir', 'Tanggal Lahir', 'Agama', 'Berkebutuhan Khusus Siswa', 'Alamat Siswa', 'RT', 'Kelurahan', 'Kecamatan', 'Kode POS', 'Tinggal Bersama', 'Mode Transportasi', 'Nama Ayah', 'NIK Ayah', 'Tanggal Lahir Ayah', 'Pendidikan Ayah', 'Pekerjaan Ayah', 'Penghasilan Ayah', 'Berkebutuhan Khusus Ayah', 'Nama Ibu', 'NIK Ibu', 'Tanggal Lahir Ibu', 'Pendidikan Ibu', 'Pekerjaan Ibu', 'Penghasilan Ibu', 'Berkebutuhan Khusus Ibu', 'Nama Wali', 'NIK Wali', 'Tanggal Lahir Wali', 'Pendidikan Wali', 'Pekerjaan Wali', 'Penghasilan Wali', 'Lingkar Kepala', 'Tinggi Badan', 'Berat Badan', 'Anak Ke', 'Jumlah Saudara', 'Hobi', 'Cita Cita', 'Jarak Rumah Ke Sekolah', 'Waktu Tempuh', 'Penerima PKH', 'Nomor PKH', 'Penerima PIP', 'Tahun Terakhir Menerima PIP', 'Prestasi', 'Juara', 'Tingkat Prestasi'];
+  
+  // PERBAIKAN: Nomor HP ditambahkan paling kanan agar konsisten & aman
+  const siswaHeaders = [...siswaHeadersBase, 'Nomor HP'];
+  
+  // PERBAIKAN: Timestamp ditambahkan di paling kanan untuk Mutasi Masuk & Keluar
+  const mutasiMasukHeaders = ['ID', 'Rombel', 'Nama', 'NISN', 'Tempat Lahir', 'Tanggal Lahir', 'Jenis Kelamin', 'Nama Sekolah', 'NPSN', 'Alamat Sekolah', 'Kelurahan Sekolah', 'Kecamatan Sekolah', 'Kab Kota', 'Propinsi', 'Alasan Pindah', 'Tanggal Pindah', 'Nomor Surat', 'Link Surat', 'Timestamp'];
+  const mutasiKeluarHeaders = [...siswaHeadersBase, 'Nama Sekolah', 'NPSN', 'Alamat Sekolah', 'Kelurahan Sekolah', 'Kecamatan Sekolah', 'Kab Kota', 'Propinsi', 'Alasan Pindah', 'Tanggal Pindah', 'Nomor Surat', 'Link Surat', 'Nomor HP', 'Timestamp'];
 
   const sheetsNeeded = [
     { name: 'Sekolah', headers: sekolahHeaders },
@@ -90,7 +97,6 @@ function doPost(e) {
         result.success = !!result.data;
         if(!result.success) result.message = "Username atau Password salah.";
         break;
-      // PERBAIKAN: Menambahkan fungsi ambil semua data dalam 1x request
       case 'getAllData':
         result.data = fetchAllData();
         result.success = true;
@@ -143,7 +149,6 @@ function loginHandle(username, password) {
   return user ? user : null;
 }
 
-// FUNGSI BARU: Ambil semua data dengan 1 panggilan (Super Fast Loading)
 function fetchAllData() {
   const ss = SpreadsheetApp.openById(SS_ID);
   const sheets = ['Tabel', 'Sekolah', 'Siswa', 'Pegawai', 'MutasiMasuk', 'MutasiKeluar', 'Pengguna'];
@@ -207,6 +212,11 @@ function saveData(sheetName, formData) {
   } else {
     id = Utilities.getUuid();
     formData.id = id;
+  }
+
+  // PERBAIKAN: Inject Timestamp otomatis ke dalam form mutasi sebelum memetakannya ke sheet
+  if (sheetName === 'MutasiMasuk' || sheetName === 'MutasiKeluar') {
+     formData['timestamp'] = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
   }
 
   const newRow = headers.map((h, colIdx) => {
