@@ -77,8 +77,7 @@ button:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; box-
 </style>
 </head>
 
-<!-- BOOST: Jika di sisi GAS, status sudah ada saat loading HTML -->
-<body data-status="1">
+<body data-status="0">
 
 <div class="modal-preview" id="modalPreview" onclick="closePreview()">
   <div class="modal-body" onclick="event.stopPropagation()">
@@ -174,33 +173,31 @@ button:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; box-
 let storageFiles = [];
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNn7P--FUxifLjVwGvADSQlANWVsRew5mKgbOSlCsUQd2jt2NkjyrYevHSpVFLfpjC/exec";
 
-// 1. BOOST LOADING LOGIC
-// Scriptlet GAS (Hanya jalan saat dideploy di GAS)
+// 1. UNIVERSAL HYBRID LOGIC (V2.2)
 const injectedConfig = '<?!= typeof serverConfig !== "undefined" ? serverConfig : "" ?>';
 
 window.onload = function() {
-  if (injectedConfig) {
-    // BOOST: Jika ada data suntikan server, langsung pakai (0ms Delay)
+  // Cek apakah variabel benar-benar berisi data JSON (GAS) atau hanya teks kode mentah (GitHub)
+  if (injectedConfig && injectedConfig.trim().startsWith('{')) {
     populateConfig(JSON.parse(injectedConfig));
   } else {
-    // FALLBACK: Jika di luar GAS (GitHub/Blog), gunakan fetch
     loadConfig();
   }
 };
 
 async function loadConfig() {
   try {
-    const res = await fetch(SCRIPT_URL, { 
-      method: 'POST', 
-      body: JSON.stringify({ action: "getConfig" }) 
-    });
+    // Solusi v2.2: Gunakan GET untuk bypass CORS di GitHub/Blogger
+    const response = await fetch(SCRIPT_URL + "?action=getConfig");
+    const config = await response.json();
+    populateConfig(config);
+  } catch(e) { 
+    console.error("Config Load Failed", e); 
+    // Jika fetch gagal, coba google.script.run jika kebetulan di GAS
     if(typeof google !== 'undefined') {
        google.script.run.withSuccessHandler(populateConfig).fetchConfigData();
-    } else {
-       const config = await res.json();
-       populateConfig(config);
     }
-  } catch(e) { console.error("Config Load Failed", e); }
+  }
 }
 
 function populateConfig(config) {
@@ -342,6 +339,7 @@ async function kirim() {
     if(typeof google !== 'undefined') {
        google.script.run.withSuccessHandler(successFlow).processSubmission(dataObj);
     } else {
+       // Submit tetap pakai POST (karena file besar), mode: no-cors diizinkan untuk kirim data
        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dataObj) });
        successFlow();
     }
