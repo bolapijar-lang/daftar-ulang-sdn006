@@ -1045,7 +1045,7 @@
             const btn = document.getElementById('btnSubmitForm');
             let oldText = btn.innerHTML; btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...`; btn.disabled = true;
 
-            showLoader(true, "Menyimpan & Membuat Dokumen..."); 
+            showLoader(true, "Menyimpan..."); 
             const res = await apiCall('saveData', { sheetName: activeSheet, formData: fd }); 
             
             await fetchReferenceData();
